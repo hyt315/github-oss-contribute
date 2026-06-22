@@ -1,0 +1,37 @@
+name: Feature Request
+description: Suggest a new feature or improvement
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! Please fill out the details below.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What problem does this feature solve?
+      placeholder: "I'm always frustrated when..."
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe the solution you'd like to see
+      placeholder: "The skill should..."
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any alternative solutions or workarounds you've considered
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: This feature aligns with the skill's core purpose
+          required: true

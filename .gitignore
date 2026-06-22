@@ -1,0 +1,23 @@
+# Obsidian
+.obsidian/
+.obsidian/workspace.json
+
+# OS generated
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Editor
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Logs
+*.log
