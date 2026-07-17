@@ -1,6 +1,6 @@
 ---
 name: github-oss-contribute
-version: 1.0.1
+version: 1.0.2
 description: |
   开源贡献全程导航：从选 Issue 到 PR 被合并的全流程引导。
   自动分析目标仓库规则（CONTRIBUTING、CI、Branch Protection、AI Policy），

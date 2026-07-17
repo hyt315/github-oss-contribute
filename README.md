@@ -7,7 +7,7 @@
 **End-to-end AI contribution navigator — from picking an Issue to getting your PR merged**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.1-green.svg)]()
+[![Version](https://img.shields.io/badge/version-1.0.2-green.svg)]()
 [![SKILL.md](https://img.shields.io/badge/Agent%20Skill-SKILL.md-green)](SKILL.md)
 
 [English](#english) | [中文](#中文)
@@ -79,8 +79,8 @@
 | **HTTPS** | `git clone https://github.com/hyt315/github-oss-contribute.git` |
 | **SSH** | `git clone git@github.com:hyt315/github-oss-contribute.git` |
 | **GitHub CLI** | `gh repo clone hyt315/github-oss-contribute` |
-| **ZIP 源码** | [下载 ZIP](https://github.com/hyt315/github-oss-contribute/archive/refs/heads/master.zip) |
-| **Tar 源码** | [下载 Tar](https://github.com/hyt315/github-oss-contribute/archive/refs/heads/master.tar.gz) |
+| **ZIP 源码** | [下载 ZIP](https://github.com/hyt315/github-oss-contribute/archive/refs/heads/main.zip) |
+| **Tar 源码** | [下载 Tar](https://github.com/hyt315/github-oss-contribute/archive/refs/heads/main.tar.gz) |
 
 ---
 
