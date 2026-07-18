@@ -14,9 +14,10 @@ Thank you for considering contributing! This document outlines the process.
 1. **Fork** the repository
 2. **Create a branch**: `git checkout -b feature/your-feature`
 3. **Make changes**: Follow existing code style and conventions
-4. **Commit**: Use [Conventional Commits](https://www.conventionalcommits.org/) format
-5. **Push**: `git push origin feature/your-feature`
-6. **Open a Pull Request**: Fill in the PR template completely
+4. **Validate**: Run `node scripts/validate-skill.mjs`
+5. **Commit**: Use [Conventional Commits](https://www.conventionalcommits.org/) format
+6. **Push**: `git push origin feature/your-feature`
+7. **Open a Pull Request**: Fill in the PR template completely
 
 ## PR Guidelines
 
@@ -30,4 +31,4 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE_OF_CONDU
 
 ## Questions?
 
-Open a [Discussion](https://github.com/hyt315/github-oss-contribute/discussions) or use the Question issue template.
+Open a [Discussion](https://github.com/hyt315/github-oss-contribute/discussions).

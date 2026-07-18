@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0d1117"/><stop offset="1" stop-color="#151b23"/></linearGradient>
+    <linearGradient id="line" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2f81f7"/><stop offset="0.5" stop-color="#a371f7"/><stop offset="1" stop-color="#3fb950"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="14" stdDeviation="20" flood-opacity="0.35"/></filter>
+  </defs>
+  <rect width="1280" height="640" rx="28" fill="url(#bg)"/>
+  <circle cx="1110" cy="80" r="240" fill="#2f81f7" opacity="0.10"/>
+  <circle cx="1080" cy="610" r="270" fill="#7c3aed" opacity="0.08"/>
+  <text x="72" y="105" fill="#8b949e" font-family="Arial, sans-serif" font-size="24" font-weight="700" letter-spacing="4">AGENT SKILL · CONTRIBUTOR WORKFLOW</text>
+  <text x="72" y="180" fill="#f0f6fc" font-family="Arial, sans-serif" font-size="58" font-weight="800">GitHub OSS Contribute</text>
+  <text x="72" y="228" fill="#b1bac4" font-family="Arial, sans-serif" font-size="26">Read the rules. Prove the change. Earn the merge.</text>
+  <path d="M152 355H1128" stroke="url(#line)" stroke-width="8" stroke-linecap="round" opacity="0.65"/>
+  <g filter="url(#shadow)" font-family="Arial, sans-serif" text-anchor="middle">
+    <g transform="translate(152 355)"><circle r="54" fill="#17233a" stroke="#2f81f7" stroke-width="3"/><text y="7" fill="#f0f6fc" font-size="18" font-weight="700">RULES</text></g>
+    <g transform="translate(347 355)"><circle r="54" fill="#252038" stroke="#a371f7" stroke-width="3"/><text y="7" fill="#f0f6fc" font-size="18" font-weight="700">ISSUE</text></g>
+    <g transform="translate(542 355)"><circle r="54" fill="#20252d" stroke="#d29922" stroke-width="3"/><text y="7" fill="#f0f6fc" font-size="18" font-weight="700">BRANCH</text></g>
+    <g transform="translate(737 355)"><circle r="54" fill="#1d2b25" stroke="#3fb950" stroke-width="3"/><text y="7" fill="#f0f6fc" font-size="18" font-weight="700">BUILD</text></g>
+    <g transform="translate(932 355)"><circle r="54" fill="#172c32" stroke="#39c5cf" stroke-width="3"/><text y="7" fill="#f0f6fc" font-size="18" font-weight="700">PR</text></g>
+    <g transform="translate(1127 355)"><circle r="54" fill="#2b2140" stroke="#a371f7" stroke-width="3"/><text y="7" fill="#f0f6fc" font-size="18" font-weight="700">REVIEW</text></g>
+  </g>
+  <rect x="72" y="500" width="1080" height="72" rx="16" fill="#161b22" stroke="#30363d"/>
+  <text x="106" y="544" fill="#3fb950" font-family="Arial, sans-serif" font-size="22" font-weight="700">MINIMAL DIFF</text>
+  <text x="294" y="544" fill="#8b949e" font-family="Arial, sans-serif" font-size="22">·</text>
+  <text x="326" y="544" fill="#f0f6fc" font-family="Arial, sans-serif" font-size="22" font-weight="700">REAL TESTS</text>
+  <text x="486" y="544" fill="#8b949e" font-family="Arial, sans-serif" font-size="22">·</text>
+  <text x="518" y="544" fill="#f0f6fc" font-family="Arial, sans-serif" font-size="22" font-weight="700">RESPECTFUL REVIEW</text>
+  <text x="784" y="544" fill="#8b949e" font-family="Arial, sans-serif" font-size="22">·</text>
+  <text x="816" y="544" fill="#a371f7" font-family="Arial, sans-serif" font-size="22" font-weight="700">APPROVED WRITES</text>
+</svg>

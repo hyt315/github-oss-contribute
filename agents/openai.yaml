@@ -1,0 +1,10 @@
+interface:
+  display_name: GitHub OSS Contribute
+  short_description: Navigate a responsible open-source contribution from Issue to merged PR
+  default_prompt: Use $github-oss-contribute to inspect the target repository, recommend a scoped contribution, and request approval before any fork, comment, push, or pull request.
+policy:
+  products:
+    - chatgpt
+    - codex
+    - api
+  allow_implicit_invocation: true

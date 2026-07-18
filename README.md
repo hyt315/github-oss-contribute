@@ -1,205 +1,142 @@
-# 🚀 开源贡献导航 / OSS Contribute Guide
+# GitHub OSS Contribute
 
-<div align="center">
+[中文](#中文) · [English](#english)
 
-**从选 Issue 到 PR 被合并的全流程 AI 贡献助手，帮你高质量参与开源项目**
+[![Validate](https://github.com/hyt315/github-oss-contribute/actions/workflows/validate.yml/badge.svg)](https://github.com/hyt315/github-oss-contribute/actions/workflows/validate.yml)
+[![Release](https://img.shields.io/github/v/release/hyt315/github-oss-contribute)](https://github.com/hyt315/github-oss-contribute/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/hyt315/github-oss-contribute/total)](https://github.com/hyt315/github-oss-contribute/releases)
+[![Contributors](https://img.shields.io/github/contributors/hyt315/github-oss-contribute)](CONTRIBUTORS.md)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-**End-to-end AI contribution navigator — from picking an Issue to getting your PR merged**
+面向第一次或长期参与开源的贡献者：先读懂仓库规则，再选择 Issue、建立最小改动、通过 CI 与 Review，避免制造没有上下文、没有验证的 AI PR。
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.2-green.svg)]()
-[![SKILL.md](https://img.shields.io/badge/Agent%20Skill-SKILL.md-green)](SKILL.md)
+```bash
+git clone https://github.com/hyt315/github-oss-contribute.git ~/.agents/skills/github-oss-contribute
+```
 
-[English](#english) | [中文](#中文)
+[安装为 Agent Skill](#安装为-agent-skill) · [查看三个贡献示例](examples/README.md) · [下载最新版](https://github.com/hyt315/github-oss-contribute/releases/latest)
 
-</div>
-
----
+![GitHub OSS Contribute workflow: rules, issue, branch, build, pull request and review](assets/social-preview.png)
 
 ## 中文
 
-## 📖 这是什么？
+### 它解决什么问题
 
-**开源贡献导航** 是一个 AI Agent Skill，专为想参与开源贡献的人设计。它自动分析目标仓库的规则（CONTRIBUTING、CI、分支保护、AI 策略），提供 Fork/Clone/Branch 操作指导，并在 PR 质量自检（反 AI Slop）、CI 失败诊断、Review 反馈处理等关键环节给出实时建议。
+高质量开源贡献不是“让 AI 改完然后直接提 PR”。贡献者需要先确认项目是否接受这类改动、Issue 是否已被认领、仓库有哪些本地规则、怎样验证，以及维护者希望如何交流。本 Skill 把这些判断放到编码之前，并在每个外部动作前明确权限边界。
 
-### ✨ 核心特性
+| 阶段 | Skill 会做什么 | 质量门禁 |
+| --- | --- | --- |
+| 仓库侦察 | 读取 README、CONTRIBUTING、AGENTS、CI、模板、DCO/CLA 和 AI policy | 不臆测不存在的规则 |
+| 选择 Issue | 评估范围、复现性、活跃度、认领状态和维护者意图 | 大改先沟通，不抢已认领 Issue |
+| 本地开发 | 建议分支、最小改动、测试与提交方案 | 不动无关文件，不伪造测试结果 |
+| PR 提交 | 生成清晰标题、问题/方案/验证/风险说明 | 创建 PR、评论和推送需用户授权 |
+| CI 与 Review | 读取失败日志、定位根因、逐条处理反馈 | 不刷屏、不催促、不隐藏 AI 使用 |
+| 合并后 | 清理分支、复盘、寻找下一项贡献 | 不把一次合并当成维护者授权 |
 
-| 特性 | 说明 |
-|------|------|
-| 🎯 **智能选 Issue** | 自动分析目标仓库，帮你找到适合新手贡献的 Issue |
-| 📋 **规则适配** | 读取目标仓库的 CONTRIBUTING.md、CI 配置、分支保护规则，动态调整建议 |
-| 🛡️ **反 AI Slop** | PR 质量自检清单，确保贡献不被当成低质量 PR 秒拒 |
-| 🔧 **CI 诊断** | CI 红了不慌，自动分析失败原因并给出修复建议 |
-| 💬 **Review 处理** | 针对 Review 反馈给出具体回复建议，提高合并率 |
-| 🌐 **MCP 自动化** | 支持 GitHub MCP 工具直接执行 Fork、创建 PR 等操作 |
+### 三个可复核示例
 
----
+1. [第一次贡献：先侦察再选 Issue](examples/README.md#示例一第一次贡献)
+2. [CI 失败：从日志定位到最小修复](examples/README.md#示例二ci-失败诊断)
+3. [Review 反馈：更新代码并给出证据](examples/README.md#示例三处理-review-反馈)
 
-## 🚀 快速开始
+### 安装为 Agent Skill
 
-这是一个 AI Agent Skill，安装到任意 AI 编程助手后即可使用。
+必须安装完整仓库；`SKILL.md` 会引用 `references/`。
 
-### 它能做什么？
+| 平台 | 用户级安装 | 调用方式 |
+| --- | --- | --- |
+| ChatGPT（Codex 模式）/ Codex CLI | `git clone https://github.com/hyt315/github-oss-contribute.git ~/.agents/skills/github-oss-contribute` | 使用 `$github-oss-contribute`，或通过 `/skills` 选择 |
+| Claude Code | `git clone https://github.com/hyt315/github-oss-contribute.git ~/.claude/skills/github-oss-contribute` | 要求 Claude 使用 `github-oss-contribute` skill |
+| Cursor | `git clone https://github.com/hyt315/github-oss-contribute.git ~/.cursor/skills/github-oss-contribute` | 要求 Cursor Agent 使用该 skill |
 
-一句话：**帮你以贡献者身份高质量参与开源项目。** 从选 Issue 开始，全程引导 Fork、分支管理、提交规范、PR 创建、CI 修复、Review 回复，直到 PR 被合并。
+项目级安装可以使用 `.agents/skills/github-oss-contribute`、`.claude/skills/github-oss-contribute` 或 `.cursor/skills/github-oss-contribute`。新安装未发现时，重启对应 Agent。
 
-### 典型使用场景
+Windows PowerShell：
 
-- 想参与开源但不知道从哪开始 — 它帮你分析仓库、推荐适合的 Issue
-- 提了 PR 被 CI 红了 — 它自动分析失败原因并给出修复方案
-- 收到 Review 意见不知道怎么回 — 它生成专业回复草稿
-- 不确定自己的 PR 质量够不够 — 它用反 AI Slop 清单帮你自检
-
-### 怎么用
-
-安装后直接告诉 AI 助手你想贡献哪个项目，Skill 会自动执行 **选 Issue → Fork/Clone → Branch → 编码 → 提交 → 创建 PR → CI 修复 → Review 回复 → 合并** 全流程引导。
-
----
-
-## 📥 安装 / Installation
-
-### 一行命令安装
-
-| 平台 | 安装命令 |
-|------|----------|
-| **Claude Code** | `git clone https://github.com/hyt315/github-oss-contribute.git ~/.claude/skills/github-oss-contribute` |
-| **Codex** | `git clone https://github.com/hyt315/github-oss-contribute.git ~/.codex/skills/github-oss-contribute` |
-| **Cursor** | `git clone https://github.com/hyt315/github-oss-contribute.git ~/.cursor/skills/github-oss-contribute` |
-
-> 安装后 Skill 会自动生效，无需额外配置。
-
----
-
-## 📥 下载 / Download
-
-### 源码下载
-
-| 方式 | 命令 / 链接 |
-|------|------------|
-| **HTTPS** | `git clone https://github.com/hyt315/github-oss-contribute.git` |
-| **SSH** | `git clone git@github.com:hyt315/github-oss-contribute.git` |
-| **GitHub CLI** | `gh repo clone hyt315/github-oss-contribute` |
-| **ZIP 源码** | [下载 ZIP](https://github.com/hyt315/github-oss-contribute/archive/refs/heads/main.zip) |
-| **Tar 源码** | [下载 Tar](https://github.com/hyt315/github-oss-contribute/archive/refs/heads/main.tar.gz) |
-
----
-
-## 💡 核心理念
-
-- **贡献者视角**：帮你以贡献者身份参与开源，而不是维护者
-- **动态适配**：每个仓库规则不同，AI 实时分析目标仓库的具体要求
-- **质量优先**：2025-2026 年 AI Slop 泛滥，确保贡献不被当成低质量 PR 秒拒
-- **全程引导**：不只教怎么提 PR，还管 CI 红了、Review 意见、等待策略
-
----
-
-## 📁 文件结构
-
-```
-github-oss-contribute/
-├── SKILL.md                              # Skill 核心定义
-├── README.md                             # 本文件
-├── LICENSE                               # MIT 协议
-├── .gitignore                            # Git 忽略规则
-├── CONTRIBUTING.md                       # 贡献指南
-├── CODE_OF_CONDUCT.md                    # 行为准则
-├── SECURITY.md                           # 安全策略
-├── .github/
-│   ├── pull_request_template.md          # PR 模板
-│   └── ISSUE_TEMPLATE/
-│       ├── bug_report.yml                # Bug 报告表单
-│       ├── feature_request.yml           # 功能建议表单
-│       ├── doc_improvement.yml           # 文档改进表单
-│       └── config.yml                    # 模板选择器配置
-└── references/                           # 参考文件
-    ├── ai-slop-guide.md                  # 反 AI Slop 指南
-    ├── commit-conventions.md             # 提交规范
-    ├── communication-etiquette.md        # 沟通礼仪
-    ├── first-timer-tips.md               # 新手建议
-    ├── git-errors.md                     # Git 常见错误
-    ├── mcp-tools.md                      # MCP 工具参考
-    └── security-guide.md                 # 安全指南
+```powershell
+git clone https://github.com/hyt315/github-oss-contribute.git "$HOME\.agents\skills\github-oss-contribute"
 ```
 
----
+### 下载
 
-## 🤝 贡献
+```bash
+# HTTPS
+git clone https://github.com/hyt315/github-oss-contribute.git
 
-请参阅 [CONTRIBUTING.md](CONTRIBUTING.md)。
+# SSH
+git clone git@github.com:hyt315/github-oss-contribute.git
 
----
+# GitHub CLI
+gh repo clone hyt315/github-oss-contribute
 
-## 📄 许可
+# main 分支 ZIP
+curl -L https://github.com/hyt315/github-oss-contribute/archive/refs/heads/main.zip -o github-oss-contribute-main.zip
 
-[MIT](LICENSE)
+# 只查看技能合同（单文件不是完整安装）
+curl -L https://raw.githubusercontent.com/hyt315/github-oss-contribute/main/SKILL.md -o SKILL.md
+```
 
----
+浏览器入口：[最新 Release](https://github.com/hyt315/github-oss-contribute/releases/latest) · [main ZIP](https://github.com/hyt315/github-oss-contribute/archive/refs/heads/main.zip)
+
+### 五分钟开始
+
+```text
+使用 $github-oss-contribute 分析 https://github.com/OWNER/REPO。
+先读取仓库规则、AI policy、CI 和当前 Issue 状态，推荐最多 3 个范围清晰且未被认领的候选项。
+现在只做只读侦察，不要 Fork、评论、创建分支或 PR。
+```
+
+公开仓库侦察不需要 Token。需要 Fork、Push、评论或创建 PR 时，优先使用平台官方 GitHub 连接、GitHub 官方 MCP OAuth 或已登录的 `gh`，再考虑最小权限 fine-grained PAT。Skill 不会要求你把 Token 发进聊天，也不会扫描配置文件寻找 Token。
+
+### 贡献伦理与署名
+
+- 遵守目标仓库最接近改动目录的 `AGENTS.md`、`CONTRIBUTING.md`、模板、DCO/CLA 和 AI policy。
+- 未经维护者认可，不发送大范围重构、纯格式化或“顺手修复”堆叠 PR。
+- 不伪造 Issue 复现、测试结果、性能数据或人工审查。
+- Git 作者应是实际提交者；AI 署名、Co-authored-by 或披露方式遵守目标仓库政策和用户选择。
+- 安全漏洞进入目标仓库的私密披露渠道，不通过普通 PR 或公开 Issue 首次披露。
+
+### 仓库结构与验证
+
+- `SKILL.md`：六阶段贡献工作流。
+- `references/`：质量、提交、沟通、Git、MCP 与安全参考。
+- `examples/`：三个端到端示例。
+- `scripts/validate-skill.mjs`：结构、链接、版本、安装路径和凭据静态检查。
+- `.github/workflows/validate.yml`：PR 与主分支 CI。
+
+```bash
+node scripts/validate-skill.mjs
+```
+
+项目使用 [MIT License](LICENSE)。参与前请阅读 [CONTRIBUTING.md](CONTRIBUTING.md)、[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)、[SECURITY.md](SECURITY.md) 和 [CONTRIBUTORS.md](CONTRIBUTORS.md)。
 
 ## English
 
-## 📖 What is this?
+GitHub OSS Contribute is an Agent Skill for reading a project's rules, choosing a well-scoped Issue, producing a minimal verified change, opening a maintainable PR and responding to CI or review feedback without low-context AI spam.
 
-**OSS Contribute Guide** is an AI Agent Skill designed for anyone who wants to contribute to open-source projects. It automatically analyzes the target repository's rules (CONTRIBUTING, CI, branch protection, AI policy), guides you through Fork/Clone/Branch operations, and provides real-time advice on PR quality checks (anti-AI Slop), CI failure diagnosis, and Review feedback handling.
+### Key behavior
 
-### ✨ Core Features
+- Public repository reconnaissance works without credentials.
+- Forks, comments, pushes and pull requests require explicit user authorization.
+- Repository-local instructions and contribution policies override generic advice.
+- The skill never fabricates test results or searches local configuration for credentials.
+- Three inspectable workflows live in [examples/README.md](examples/README.md).
 
-| Feature | Description |
-|---------|-------------|
-| 🎯 **Smart Issue Picking** | Analyzes the target repo and finds beginner-friendly Issues |
-| 📋 **Rule Adaptation** | Reads the repo's CONTRIBUTING.md, CI config, and branch protection rules to dynamically adjust advice |
-| 🛡️ **Anti-AI Slop** | PR quality checklist to ensure your contribution isn't rejected as low-quality |
-| 🔧 **CI Diagnosis** | Automatically analyzes CI failures and suggests fixes |
-| 💬 **Review Handling** | Generates professional reply drafts for Review feedback |
-| 🌐 **MCP Automation** | Supports GitHub MCP tools to directly execute Fork, create PR, and more |
+### Install
 
----
+```bash
+# Codex / ChatGPT Codex mode
+git clone https://github.com/hyt315/github-oss-contribute.git ~/.agents/skills/github-oss-contribute
 
-## 🚀 Quick Start
+# Claude Code
+git clone https://github.com/hyt315/github-oss-contribute.git ~/.claude/skills/github-oss-contribute
 
-This is an AI Agent Skill — install it in any AI coding assistant and it's ready to use.
-
-### What it does
-
-In one sentence: **helps you contribute to open-source projects with high quality.** From picking an Issue to Fork, branch management, commit conventions, PR creation, CI fixes, Review replies — full workflow guidance until your PR is merged.
-
-### Common use cases
-
-- Want to contribute to open-source but don't know where to start — it analyzes repos and recommends suitable Issues
-- Your PR failed CI — it analyzes the failure and suggests fixes
-- Received Review feedback and don't know how to reply — it generates professional response drafts
-- Not sure if your PR quality is good enough — it runs an anti-AI Slop checklist for self-inspection
-
-### How to use
-
-Once installed, simply tell your AI assistant which project you want to contribute to. The Skill guides the full workflow: **Pick Issue → Fork/Clone → Branch → Code → Commit → Create PR → Fix CI → Reply to Review → Merge**.
-
----
-
-## 📁 File Structure
-
-```
-github-oss-contribute/
-├── SKILL.md                              # Core skill definition
-├── README.md                             # This file
-├── LICENSE                               # MIT License
-├── .gitignore                            # Git ignore rules
-├── CONTRIBUTING.md                       # Contribution guide
-├── CODE_OF_CONDUCT.md                    # Code of conduct
-├── SECURITY.md                           # Security policy
-├── .github/
-│   ├── pull_request_template.md          # PR template
-│   └── ISSUE_TEMPLATE/                   # Issue templates
-└── references/                           # Reference documents (7 files)
+# Cursor
+git clone https://github.com/hyt315/github-oss-contribute.git ~/.cursor/skills/github-oss-contribute
 ```
 
----
+Validate with `node scripts/validate-skill.mjs`. See the Chinese section for downloads, safety boundaries and the repository map.
 
-## 🤝 Contributing
+### Sources
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
-
----
-
-## 📄 License
-
-[MIT](LICENSE)
+The workflow follows GitHub's documentation for [contributing to projects](https://docs.github.com/get-started/exploring-projects-on-github/contributing-to-a-project), [working with forks](https://docs.github.com/pull-requests/collaborating-with-pull-requests/working-with-forks), [pull requests](https://docs.github.com/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests) and the [official GitHub MCP Server](https://github.com/github/github-mcp-server).

@@ -1,11 +1,11 @@
 ---
 name: github-oss-contribute
-version: 1.0.2
+version: 1.1.0
 description: |
   开源贡献全程导航：从选 Issue 到 PR 被合并的全流程引导。
   自动分析目标仓库规则（CONTRIBUTING、CI、Branch Protection、AI Policy），
   提供 Fork/Clone/Branch 操作指导、PR 质量自检（反 AI Slop）、CI 失败诊断、
-  Review 反馈处理、等待期策略建议。支持 GitHub MCP 自动化操作。
+  Review 反馈处理、等待期策略建议和批准门禁。支持官方 GitHub 连接、MCP、CLI、网页与公开 API 回退。
   触发词：开源贡献、第一次贡献、提 PR、first contribution、contribute、
   找个 issue 做、提交 PR、PR 被拒了怎么办、CI 红了、review 意见。
 ---
@@ -18,31 +18,40 @@ description: |
 
 - **贡献者视角**：帮你以贡献者身份参与开源项目，而不是维护者
 - **动态适配**：每个仓库规则不同，AI 实时分析目标仓库的具体要求
-- **质量优先**：2025-2026 年 AI Slop 泛滥，确保贡献不被当成低质量 PR 秒拒
+- **质量优先**：用仓库上下文、最小范围、真实验证和持续责任证明贡献质量，不批量制造低上下文 PR
 - **全程引导**：不只教怎么提 PR，还管 CI 红了、Review 意见、等待策略
 - **安全意识**：不泄露敏感信息，遵守安全规范
+- **仓库规则优先**：目标仓库最接近改动目录的 AGENTS.md、CONTRIBUTING、模板、DCO/CLA 和 AI policy 高于通用建议
+- **读写分离**：公开仓库侦察可以直接进行；Fork、评论、Push、创建或更新 PR 等外部写操作需要明确授权
+- **真实证据**：不得伪造复现、测试、性能结果、维护者意见或人工审查
+- **正确署名**：保留实际贡献者的 Git 作者身份；AI 披露或 Co-authored-by 遵守目标仓库规则和用户选择
 
 ---
 
 ## 前置条件
 
-1. **GitHub MCP** 已连接 — 调用 `get_me` 验证认证状态。详见 `references/mcp-tools.md`
-2. **Git** 已安装并配置好用户名和邮箱：
-   ```bash
-   git config --global user.name "Your Name"
-   git config --global user.email "your@email.com"
-   ```
-3. **GitHub CLI（gh）** 已安装（作为 MCP 替代方案）— 运行 `gh auth login` 完成认证
+公开仓库的规则、Issue、PR 和 CI 侦察不需要认证。只在准备执行 Fork、评论、Push 或创建 PR 时检查写入能力。
 
-如未满足，提示用户先完成配置。
+1. **Git** 已安装。提交前检查当前仓库的用户名和邮箱；不要擅自修改全局配置：
+   ```bash
+   git config user.name
+   git config user.email
+   ```
+   如未设置，询问用户希望使用的身份，并优先用仓库级 `git config user.name` / `git config user.email`。
+2. **GitHub 写入能力**按优先级选择：平台官方 GitHub 连接或 GitHub 官方 MCP OAuth、已认证的 `gh`、官方本地 MCP、最小权限 fine-grained PAT、人工网页操作。
+3. 不要求用户把 Token 发到聊天，不搜索用户目录或配置文件提取凭据，不打印或持久化 Token。
+
+认证不可用时继续完成只读侦察、本地修改、测试、补丁和 PR 草稿；只暂停被阻塞的外部写入。
 
 ---
 
 ## GitHub MCP 工具速查
 
-常用工具：`get_file_contents`、`search_issues`、`fork_repository`、`create_pull_request`、`pull_request_read`（查 PR 状态/审查/评论/文件）、`issue_read`、`add_issue_comment`
+先查看当前平台实际暴露的 GitHub 能力，再按用途映射：仓库文件读取、Issue 搜索/评论、Fork、PR 创建/读取、Review、Actions 日志。工具名和参数会随 GitHub MCP 版本变化，不把某一套名字当成永久 API。
 
-> 完整工具清单见 `references/mcp-tools.md`。所有操作均可通过 GitHub CLI 或网页替代。
+> 能力映射与回退方式见 `references/mcp-tools.md`。所有只读步骤均可通过公开 API 或网页完成；写操作可通过已认证的 GitHub CLI 或网页替代。
+
+下文中的工具调用块是常见 GitHub MCP 形态的说明示例。执行时必须以当前宿主实际暴露的工具名、`method` 和参数 schema 为准。
 
 ---
 
@@ -70,18 +79,17 @@ Phase 6: 跟踪 — CI 诊断、Review 处理、等待策略、直到合并
 
 > 用户提供仓库地址或名称后执行。
 
-### 1.1 验证认证状态
+### 1.1 确认范围与能力
 
-```
-get_me
-```
+先确认目标 `owner/repo` 和本轮边界。公开仓库侦察直接开始，不为读取公开信息索取认证。只有用户准备执行 Fork、评论、Push 或创建 PR 时，才检查当前平台是否已有官方 GitHub 连接、MCP OAuth 或 `gh auth status`。
 
 ### 1.2 读取仓库配置文件
 
-使用 `get_file_contents` 依次读取（文件可能不存在，跳过即可）：
+通过当前平台的仓库文件读取能力、公开网页/API 或本地 clone 依次读取（文件可能不存在，记录缺失并继续）：
 
 | 文件 | 路径 | 关注点 |
 |------|------|--------|
+| AGENTS.md | 仓库根目录与改动文件的父目录 | 对 AI Agent 生效的持久约束、测试命令和风格要求；越接近改动目录的文件优先 |
 | CONTRIBUTING.md | 根目录 / `docs/` / `.github/` | 贡献流程、分支策略、commit 规范 |
 | CODE_OF_CONDUCT.md | 根目录 / `docs/` / `.github/` | 行为准则 |
 | CODEOWNERS | `CODEOWNERS` / `.github/` / `docs/` | 谁负责审核哪些文件 |
@@ -101,7 +109,7 @@ search_issues: q="repo:{owner}/{repo} is:pr is:merged" sort=updated per_page=10
 list_commits: owner="{owner}" repo="{repo}" per_page=10
 ```
 
-评估：最近合并时间、平均 PR 合并时间、PR 接受率、贡献者数量、提交频率。
+评估：最近合并时间、PR 响应与合并时间、贡献者数量、提交频率。样本不足时给出样本量与时间窗口，不把少量 PR 推导成稳定“接受率”。
 
 ### 1.4 输出侦察报告
 
@@ -133,7 +141,7 @@ list_commits: owner="{owner}" repo="{repo}" per_page=10
 
 ### 2.1 搜索适合的 Issue
 
-**方式一：GitHub MCP 搜索**（推荐）
+**方式一：当前 GitHub 连接或 MCP 的 Issue 搜索能力**
 
 ```
 search_issues: q="repo:{owner}/{repo} is:issue is:open label:\"good first issue\"" sort=updated
@@ -153,7 +161,7 @@ gh issue view {编号} --repo {owner}/{repo}
 
 > Good First Issue（goodfirstissue.dev）、CodeTriage、Up For Grabs 等，详见 `references/first-timer-tips.md`。
 
-> **注意**：2025-2026 年 "good first issue" 标签被 AI Slop 大量滥用，维护者审查越来越严格。
+> `good first issue` 只是候选信号，不等于允许直接开工。仍要检查是否被指派、是否有人认领、最近是否有维护者确认，以及验收条件是否清楚。
 
 ### 2.2 评估 Issue 可行性
 
@@ -174,7 +182,7 @@ gh issue view {编号} --repo {owner}/{repo}
 add_issue_comment: owner="{owner}" repo="{repo}" issue_number={编号} body="..."
 ```
 
-> 评论模板见 `references/communication-etiquette.md`。给维护者 2-3 天回复，收到确认后再写代码。
+> 评论是外部写操作，先展示草稿并获得批准。等待时间遵循目标仓库活跃度和 CONTRIBUTING 指引，不用固定天数机械催促。
 > 例外：typo 修复、文档小改可直接提 PR。
 
 ### 2.4 输出选题建议
@@ -187,14 +195,16 @@ add_issue_comment: owner="{owner}" repo="{repo}" issue_number={编号} body="...
 
 ### 3.1 Fork 仓库
 
-**方式一：GitHub MCP**（推荐）
+Fork 会在用户账号下创建远程仓库。先展示目标上游、目标账号和后续用途，并获得批准。
+
+**方式一：当前 GitHub 连接或 MCP 的 Fork 能力**
 ```
 fork_repository: owner="{owner}" repo="{repo}"
 ```
 
 **方式二：GitHub CLI**
 ```bash
-gh repo fork {owner}/{repo} --clone -- --depth=1
+gh repo fork {owner}/{repo} --clone
 ```
 
 **方式三：网页** — 访问仓库页面，点击右上角 "Fork"。
@@ -202,8 +212,8 @@ gh repo fork {owner}/{repo} --clone -- --depth=1
 ### 3.2 Clone 到本地
 
 ```bash
-# 推荐：浅克隆（节省空间）
-git clone --depth=1 https://github.com/{你的用户名}/{repo}.git
+# 默认保留完整历史，便于 blame、rebase 和依赖版本信息的测试脚本
+git clone https://github.com/{你的用户名}/{repo}.git
 cd {repo}
 
 # 添加上游仓库
@@ -211,7 +221,7 @@ git remote add upstream https://github.com/{owner}/{repo}.git
 git remote -v
 ```
 
-> 国内用户如遇连接超时，可配置 Git 代理（`git config --global http.proxy http://127.0.0.1:7897`）或使用 SSH 协议。
+> 只有在用户已经拥有可信代理并明确要求时才配置 Git 代理；不要写入猜测的本地端口。大型仓库可在确认不依赖历史后选择浅克隆。
 
 ### 3.3 创建功能分支
 
@@ -225,7 +235,7 @@ git merge upstream/main
 git checkout -b fix/issue-123-description
 ```
 
-或通过 MCP：`create_branch: owner="{你的用户名}" repo="{repo}" branch="fix/issue-123" from_branch="main"`
+也可使用当前 GitHub 连接提供的分支创建能力。创建 Fork 或远程分支前先确认目标账号、上游仓库和分支名。
 
 **分支命名规范**（如仓库无特殊要求）：
 
@@ -247,13 +257,13 @@ git checkout -b fix/issue-123-description
 
 ### 4.1 代码质量自检清单
 
-> 2025-2026 年 AI Slop 问题严重，详见 `references/ai-slop-guide.md`。
+> AI 辅助不是问题本身；缺少上下文、理解、验证和责任才是质量风险。详见 `references/ai-slop-guide.md`。
 
 **提交前必须确认**：
 
 - [ ] 我理解这个 Issue 要解决什么问题
 - [ ] 我理解我写的代码为什么能解决这个问题
-- [ ] 改动范围尽量小（<200 行最佳）
+- [ ] 改动范围是完成已接受目标所需的最小可审查范围（不存在通用行数上限）
 - [ ] 没有引入不相关的修改
 - [ ] 能解释每一处改动的理由
 - [ ] 如果使用了 AI 辅助，我理解生成的代码逻辑
@@ -261,16 +271,16 @@ git checkout -b fix/issue-123-description
 - [ ] 没有引入不必要的依赖
 - [ ] 没有硬编码密钥或敏感信息
 
-**AI Slop 红线（碰了就会被拒）**：
+**高风险质量信号**：
 
 | 行为 | 为什么被拒 |
 |------|-----------|
 | 大量不相关的格式化修改 | 维护者需逐行审查 |
 | 提交了自己不理解的代码 | Review 追问答不上来 |
 | 一次性提交几千行代码 | 审查负担太重 |
-| 不写测试或测试跑不过 | 说明没有本地验证 |
+| 声称测试通过但没有运行，或隐瞒失败 | 维护者无法信任验证结果 |
 | 解决了一个不存在的问题 | 没看懂 Issue 就写代码 |
-| 抢 "good first issue" 后提交低质量 PR | 被视为 AI Slop |
+| 未检查认领状态就提交重复 PR | 浪费贡献者和维护者时间 |
 
 ### 4.2 安全实践
 
@@ -320,6 +330,8 @@ git diff --stat upstream/main  # 确认改动范围合理
 
 ### 5.1 Push 到 Fork
 
+Push 前展示远程名称、完整仓库 URL、精确分支和将要推送的提交；获得批准后执行。
+
 ```bash
 git push origin fix/issue-123-description
 
@@ -331,11 +343,13 @@ git push origin fix/issue-123-description
 git push --force-with-lease origin fix/issue-123-description
 ```
 
-> `--force-with-lease` 比 `--force` 安全——远程有未看到的更新会拒绝推送。
+> `--force-with-lease` 仍会改写远程分支。仅在确认 PR 的精确 head 分支、没有他人提交且用户批准后使用；禁止对默认分支使用。
 
 ### 5.2 创建 PR
 
-**方式一：GitHub MCP**（推荐）
+创建 PR 前展示 base/head、标题、正文、文件列表、测试证据、已知风险和 AI 披露要求；这是独立于 Push 的外部写入批准点。
+
+**方式一：当前 GitHub 连接或 MCP 的 PR 创建能力**
 ```
 create_pull_request:
   owner: "{owner}"  repo: "{repo}"
@@ -370,7 +384,7 @@ pull_request_read: owner="{owner}" repo="{repo}" pull_number={PR编号} method="
 
 ### 5.6 开启 "Allow edits by maintainers"
 
-创建 PR 时勾选此选项（MCP: `maintainer_can_modify: true`），让维护者能直接在你的分支上小修小补，加速合并。
+是否允许维护者修改 Fork 分支取决于目标项目习惯和分支中是否含有不应共享的工作。默认解释影响并让用户选择，不机械开启。
 
 ### 5.7 Breaking Changes
 
@@ -396,7 +410,7 @@ pull_request_read: owner="{owner}" repo="{repo}" pull_number={PR编号} method="
 | Lint 失败 | `npm run lint --fix` 或对应命令 |
 | 测试失败 | 检查失败用例，修复 bug 或更新测试 |
 | 构建失败 | 查看构建日志，检查依赖和类型 |
-| 签名检查 | `git commit --amend -s --no-edit && git push -f` |
+| 签名检查 | 核对 DCO/签名要求；修正提交后仅对精确 PR 分支使用 `git push --force-with-lease` |
 | Commit 格式 | `git commit --amend` 修改 message |
 | 安全扫描 | 更新有漏洞的依赖版本 |
 | 代码覆盖率 | 补充测试用例 |
@@ -425,15 +439,15 @@ pull_request_read: owner="{owner}" repo="{repo}" pull_number={PR编号} method="
 
 | 仓库活跃度 | 建议等待 | 之后怎么办 |
 |-----------|---------|-----------|
-| 活跃（每周有合并） | 7 天 | 礼貌 ping |
-| 一般（月均有合并） | 14-21 天 | 礼貌 ping |
-| 不活跃（月+无合并） | 30 天 | 考虑换项目 |
+| 活跃（每周有合并） | 参考近期同类 PR | 超过正常响应窗口后礼貌询问一次 |
+| 一般（月均有合并） | 参考维护者公开节奏 | 补充新信息时再更新，避免无内容 ping |
+| 不活跃（月+无合并） | 先判断项目状态 | 考虑换项目或保留 Fork，不持续催促 |
 
 ```
 add_issue_comment: owner="{owner}" repo="{repo}" issue_number={PR编号} body="Hi! Just a friendly ping..."
 ```
 
-**Stale Bot**：许多项目用 Stale Bot 自动关闭不活跃 PR（通常 30-60 天无活动）。收到 stale 通知后及时评论以重置计时器。
+**Stale Bot**：收到 stale 通知时，只有在仍计划继续且能提供状态或新证据时才回复；不要发送无内容评论只为重置计时器。
 
 ### 6.4 分支冲突处理
 
@@ -444,11 +458,11 @@ git rebase upstream/main
 git push --force-with-lease origin fix/issue-123-description
 ```
 
-或通过 MCP：`update_pull_request_branch`（注意：MCP 方式创建 merge commit，部分项目偏好 rebase）。
+也可使用当前 GitHub 连接的“更新 PR 分支”能力，但要先确认它会 merge 还是 rebase，并遵守目标项目策略。
 
 ### 6.5 Merge 策略
 
-维护者合并时选择策略：Merge commit（最常用）、Squash and merge、Rebase and merge、Merge queue。如果项目开启了 auto-merge，可在 PR 页面启用。
+合并策略由维护者和仓库规则决定：Merge commit、Squash、Rebase 或 Merge queue 都可能使用。贡献者不应把自己的偏好写成项目默认。
 
 ### 6.6 PR 被合并后
 
@@ -477,7 +491,7 @@ git push origin --delete fix/issue-123-description
 
 | 情况 | 处理 |
 |------|------|
-| GitHub MCP 未连接 | 提示连接或改用 CLI / 网页 |
+| GitHub MCP 未连接 | 继续公开只读侦察和本地工作；外部写入改用已认证 CLI、官方连接或网页 |
 | 仓库不存在或无权限 | 确认仓库名和权限 |
 | Issue 已被分配 | 建议选其他 Issue |
 | 本地环境搭建失败 | 查看 README 环境要求 |

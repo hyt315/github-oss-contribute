@@ -12,8 +12,8 @@
 
 ## 第一次贡献流程
 
-1. 选择一个标注了 "good first issue" 的 Issue
-2. 先在 Issue 下评论说明你想做
+1. 选择一个范围清楚、未被认领且近期仍有效的 Issue；`good first issue` 只是一个候选信号
+2. 按仓库习惯决定是否先评论认领；评论前先确认不是无意义占位
 3. Fork → Clone → 创建分支
 4. 做最小必要的改动
 5. 本地测试通过
@@ -31,14 +31,6 @@
 | "不需要提前沟通" | 非 trivial 改动建议先在 Issue 讨论 |
 | "CI 红了等维护者处理" | 主动修复 CI 失败是你的责任 |
 
-## 外部工具发现入门 Issue
+## 发现入门 Issue
 
-| 工具 | 网址 | 特点 |
-|------|------|------|
-| Good First Issue | goodfirstissue.dev | 按语言分类的新手友好 Issue |
-| CodeTriage | codetriage.com | 定期推送 Issue 到邮箱 |
-| Up For Grabs | up-for-grabs.net | 聚合多项目的入门 Issue |
-| First Timers Only | firsttimersonly.com | 专为首次贡献者设计 |
-| GitHub Topics | github.com/topics/good-first-issue | GitHub 标签聚合页 |
-
-> **注意**：2025-2026 年 "good first issue" 标签被 AI Slop 大量滥用。维护者对这些标签的 PR 审查越来越严格，提交前务必确保质量。
+优先使用目标仓库自己的 Issue 搜索、贡献指南和 [GitHub `good-first-issue` Topics](https://github.com/topics/good-first-issue)。任何聚合结果都要回到原仓库核对状态、认领评论、维护者意图和验收条件。

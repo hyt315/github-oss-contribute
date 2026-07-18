@@ -1,13 +1,24 @@
 # Security Policy
 
-## Reporting a Vulnerability
+## Reporting a vulnerability
 
-If you discover a security vulnerability in this project, please report it via [GitHub Private Vulnerability Reporting](https://github.com/hyt315/github-oss-contribute/security/advisories/new) or email us at [security@example.com](mailto:security@example.com).
+Report vulnerabilities through [GitHub Private Vulnerability Reporting](https://github.com/hyt315/github-oss-contribute/security/advisories/new).
 
-**Please do not report security vulnerabilities through public GitHub issues.**
+Do not disclose exploit details, credentials, private repository data or personal information in a public Issue or pull request. If the private reporting form is unavailable, ask the maintainer to enable a private channel without including sensitive details.
 
-We will respond within 5 business days and aim to resolve confirmed issues within 30 days.
+## Skill safety requirements
 
-## Supported Versions
+GitHub OSS Contribute must never:
 
-As this is an AI Agent Skill project, only the latest version is actively supported.
+- ask a user to paste a PAT, API key or password into chat;
+- search local configuration, shell history or a home directory for credentials;
+- print, persist or commit credentials;
+- fabricate reproduction steps, tests, benchmarks, CI results or maintainer approval;
+- publish a security fix before the target project's private disclosure process allows it;
+- push, comment, fork or create a PR without authorization for that exact external action.
+
+If a credential is exposed, stop the affected workflow, revoke/rotate it, inspect Git history and coordinate any history rewrite with all affected collaborators.
+
+## Supported versions
+
+Only the latest published release is actively supported.

@@ -1,140 +1,97 @@
-# AI Slop 防护指南
+# AI-assisted contribution quality guide
 
-> 2025-2026 年开源社区面临的最大挑战之一：AI 生成的低质量 PR（AI Slop）泛滥。
-> 本文件帮助贡献者确保自己的 PR 不会被当成 AI Slop 拒绝。
+The problem is not the use of AI itself. The problem is sending maintainers work that lacks context, understanding, verification or ownership. This guide defines an evidence-based quality gate without inventing a universal “AI policy.”
 
-## 背景
+## Target-repository policy comes first
 
-"slop" 是 Merriam-Webster（韦氏词典）2025 年度词汇，"AI slop" 是 Macquarie Dictionary（麦考瑞词典）2025 年度词汇，定义为"通常由人工智能生成的、低质量的、通常不准确或虚假的数字内容（如文章、图像、视频等），其特点是批量生产且未经人类筛选或审核"。
+Before changing code, inspect the target repository for:
 
-### 实际影响
+- `AGENTS.md` and other agent instructions;
+- `CONTRIBUTING.md`, PR templates and Issue templates;
+- an explicit AI/LLM contribution policy;
+- DCO, CLA, signing and authorship requirements;
+- test, lint, formatting and generated-file commands;
+- maintainer comments on the selected Issue.
 
-- **cURL**：2025 年全年持续收到大量 AI 生成的虚假漏洞报告，创始人 Daniel Stenberg 于 2026 年初宣布暂停接收漏洞报告
-- **RubyGems**：数月未收到有效安全报告，考虑关闭报告渠道
-- **tldraw**：被 AI Slop 淹没后关闭了外部贡献
-- **Jellyfin**：专门制定了 LLM/AI 开发政策
-- **WordPress**：要求开发者声明 AI 使用情况
-- **Good First Issue 标签滥用**：许多项目的 "good first issue" 标签在 24 小时内被大量低质量 AI PR 淹没，导致维护者不得不关闭该标签或加强审查
+If no AI policy exists, do not infer that AI is banned or that disclosure is required. The contributor remains responsible for accuracy, licensing, security and maintainability. Disclose AI assistance when the repository requests it or when the user chooses to do so.
 
-### GitHub 官方应对
+## Evidence gate before a PR
 
-GitHub 正在推出多项功能帮助维护者控制 PR 质量：
-- 限制谁可以提交 PR 的选项
-- 完全禁用 PR 的选项
-- 从 UI 中移除 PR 的选项
-- 2025 年 5 月推出 Copilot 自动生成 Issue 功能，引发社区对 AI 生成内容质量的担忧
+### Problem ownership
 
-## 各项目的 AI 贡献政策
+- Reproduce the bug or cite the exact requested behavior.
+- Confirm the Issue is open, current and not already claimed.
+- Explain why the change belongs in this repository.
+- For broad or architectural work, obtain maintainer direction first.
 
-| 项目 | 政策摘要 |
-|------|---------|
-| **CPython** | 允许 AI 辅助，但贡献者必须理解代码并承担责任 |
-| **WordPress** | 要求声明 AI 使用情况，明确"AI Slop"定义 |
-| **Jellyfin** | 制定了 LLM/AI 开发政策，限制 AI 生成内容 |
-| **KubeVirt** | 要求 AI 辅助贡献必须声明 |
-| **Spring** | 2025 年从 CLA 迁移到 DCO，AI 政策在评估中 |
-| **curl** | 因 AI 生成虚假漏洞报告泛滥，于 2026 年初暂停接收漏洞报告 |
-| **React** | 鼓励人类贡献者，对 AI 生成的大规模 PR 保持警惕 |
-| **Kubernetes** | 要求贡献者对 AI 辅助代码完全理解并负责 |
+### Scope control
 
-> 完整列表：github.com/melissawm/open-source-ai-contribution-policies
-> 该仓库持续更新，建议贡献前查看目标项目的最新政策。
+- Change only files needed for the accepted outcome.
+- Separate refactors, formatting and dependency updates unless they are necessary.
+- Prefer the smallest reviewable change; there is no universal line-count limit.
+- Explain generated files and include the command that regenerates them.
 
-## 如何确保你的 PR 不被当成 AI Slop
+### Understanding
 
-### 必须做到
+- Be able to explain the changed behavior, main design choice and trade-offs.
+- Verify API and dependency claims against primary documentation or repository code.
+- Do not paste code whose license or provenance is unclear.
+- Do not impersonate a maintainer, reviewer or another contributor.
 
-1. **理解你的代码**
-   - 能解释每一行代码的作用
-   - 能回答 Reviewer 的技术追问
-   - 知道为什么选择这种实现方式而非其他
+### Verification
 
-2. **控制改动范围**
-   - 只改需要改的文件
-   - 理想 PR < 200 行改动
-   - 不引入不相关的格式化/重命名
+- Run the repository-prescribed tests and record exact commands and outcomes.
+- Add a regression test when the change fixes reproducible behavior and the project accepts tests.
+- Distinguish “not run,” “not available” and “passed.”
+- Treat CI output as evidence; identify the first root failure before editing downstream symptoms.
 
-3. **写有意义的 Commit Message**
-   - 不要 "update file.txt"
-   - 不要 "fix bug"
-   - 要 "fix(auth): add null check for empty password field"
+### Communication
 
-4. **测试你的代码**
-   - 本地运行测试通过
-   - 如果可能，新增测试覆盖
-   - CI 红了要主动修复
+- State the problem, approach, verification and known limitations.
+- Link the Issue using the repository's preferred closing syntax only when the PR should close it.
+- Answer review comments directly and update the PR description when scope changes.
+- Do not send empty pings, mass-produced Issues or near-identical PRs across projects.
 
-5. **声明 AI 使用情况**（如果仓库要求）
-   - 查看 CONTRIBUTING.md 是否有 AI 声明要求
-   - 在 PR 描述中说明 AI 使用情况
-   - 强调你理解代码逻辑
+## Red flags
 
-6. **先沟通再动手**
-   - 对于非 trivial 的改动，先在 Issue 中说明你的方案
-   - 等维护者确认方向后再开始写代码
-   - 避免花大量时间做维护者不想要的改动
+| Red flag | Better response |
+| --- | --- |
+| Entire files rewritten without need | Restore unrelated lines and isolate the behavioral change |
+| Claims that tests passed without logs or commands | Run the tests or mark them honestly as not run |
+| Generic PR description | Describe the repository-specific problem and evidence |
+| New dependency for a small helper | Check existing utilities and justify the dependency |
+| Dozens of formatting changes | Revert them or move them to a separately approved PR |
+| AI disclosure copied from another project | Follow this repository's actual policy |
+| Security finding posted publicly | Stop and use the repository's private disclosure path |
 
-### 绝对不要做
+## Pre-PR checklist
 
-| 行为 | 后果 |
-|------|------|
-| 把整个文件交给 AI 重写 | 大量不相关 diff，秒拒 |
-| 不理解就提交 | Review 追问答不上来 |
-| 一次提交几千行 | 审查负担太重 |
-| 同时给多个项目提同类 PR | 被识别为批量 Slop |
-| 复制粘贴不相关代码 | 引入安全漏洞风险 |
-| 忽略 CI 失败 | 说明没有本地验证 |
-| 不回复 Review 意见 | 维护者不会再花时间审查 |
-| 抢 "good first issue" 标签的 Issue 后提交低质量 PR | 被视为 AI Slop，可能被封禁 |
-| 用 AI 生成 Issue 报告 | 可能被维护者直接忽略或标记为垃圾 |
+```text
+Repository rules
+[ ] I read the applicable AGENTS/CONTRIBUTING/templates/AI policy.
+[ ] The Issue is current and not already claimed.
+[ ] I followed DCO/CLA/signing/authorship requirements.
 
-## PR 质量自检模板
+Scope and understanding
+[ ] Every changed file is necessary for the accepted outcome.
+[ ] I can explain the design choice and trade-offs.
+[ ] Third-party code/data/assets have clear provenance and compatible terms.
 
-提交前用这个清单自测：
+Verification
+[ ] I recorded exact test/lint/build commands and results.
+[ ] I did not claim checks that were not run.
+[ ] The diff contains no secrets, private paths or unrelated generated files.
 
-```
-## 自检清单
-
-### 理解度
-- [ ] 我能用一句话说清楚这个 PR 解决了什么问题
-- [ ] 我能解释为什么选择这种实现方式
-- [ ] 如果 Reviewer 问"这段代码为什么这样写"，我能回答
-- [ ] 我能在没有 AI 辅助的情况下独立解释代码逻辑
-
-### 改动范围
-- [ ] 只改了 Issue 涉及的文件（无不相关改动）
-- [ ] 改动行数 < 200 行（越少越好）
-- [ ] 没有引入不相关的格式化
-- [ ] 没有重命名不相关的变量或函数
-
-### 质量
-- [ ] 本地测试通过
-- [ ] lint 检查通过
-- [ ] 没有硬编码敏感信息
-- [ ] 代码风格与项目一致
-- [ ] 没有引入不必要的依赖
-
-### 沟通
-- [ ] PR 标题符合项目规范（如 Conventional Commits）
-- [ ] PR 描述说清楚了 what/why/how
-- [ ] 关联了 Issue 编号（Closes #xxx）
-- [ ] 如果用了 AI 辅助，已按仓库要求声明
-- [ ] 如果改动较大，已提前在 Issue 中沟通过方案
+Communication
+[ ] The PR explains problem, approach, evidence and limitations.
+[ ] AI assistance is disclosed if required by policy or chosen by the contributor.
+[ ] The PR is ready for respectful follow-up and maintenance.
 ```
 
-## 如果 PR 被当成 AI Slop 拒绝
+## If a maintainer rejects the contribution
 
-1. **不要争辩**：先理解维护者的顾虑
-2. **证明理解**：在评论中详细解释你的代码逻辑和决策过程
-3. **缩小范围**：如果 PR 太大，拆分成更小的 PR
-4. **提供上下文**：说明你的思路和为什么选择这种实现
-5. **学习改进**：如果确实质量不够，改进后重新提交
-6. **尊重决定**：如果维护者明确表示不接受，尊重他们的决定，吸取经验
-
-## 2025-2026 年 AI Slop 趋势观察
-
-- AI 生成的漏洞报告从"明显垃圾"演变为"高质量混乱"——格式正确、逻辑看似合理，但实际不成立
-- 部分培训课程教学员批量提交开源 PR 来"镀金"简历，导致项目被低质量 PR 淹没
-- 维护者对 "good first issue" 标签的 PR 审查越来越严格
-- 越来越多的项目开始明确制定 AI 贡献政策
-- GitHub 自身也在推出 AI 工具（如 Copilot 生成 Issue），引发社区对 AI 内容质量的讨论
+1. Read the stated reason without arguing about intent.
+2. Ask one focused clarification only if the requested outcome is unclear.
+3. Reduce scope or provide missing evidence when the maintainer invites revision.
+4. Close the PR when the project does not want the change.
+5. Do not reopen, duplicate or move the same unsolicited change to another channel.
