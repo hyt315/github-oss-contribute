@@ -1,56 +1,52 @@
-# 安全实践指南
+# Security guide for contributors
 
-## 绝对不要提交的内容
+## Never commit
 
-- API 密钥、访问令牌（如 GitHub PAT、AWS Key）
-- 数据库密码、连接字符串
-- `.env` 文件、配置文件中的敏感信息
-- 私钥文件（`.pem`、`.key`、`.p12`）
-- 内部服务器地址、内部 API 端点
+- access tokens, API keys, passwords or private keys;
+- `.env` files containing real values;
+- internal hosts, private repository data or customer information;
+- generated logs, fixtures or screenshots containing personal data;
+- third-party code or assets without known provenance and compatible terms.
 
-## 如果不小心提交了敏感信息
+## Before committing
 
-```bash
-# 1. 立即撤销该密钥/令牌（最重要！在 GitHub/服务提供商设置中操作）
-# 2. 从 Git 历史中移除（使用 git-filter-repo 或 BFG）
-pip install git-filter-repo
-git filter-repo --invert-paths --path .env
-# 3. Force push
-git push --force-with-lease origin fix/issue-123-description
-# 4. 通知维护者（如果已经提了 PR）
-```
-
-> **注意**：仅仅删除文件并提交新 commit 是不够的——敏感信息仍然存在于 Git 历史中。必须用工具清除历史记录，并立即撤销泄露的凭证。
-
-## 提交前检查
+Inspect the exact staged file list and diff. Do not print unrelated environment variables.
 
 ```bash
-# 检查是否有敏感文件被暂存
-git diff --cached --name-only | grep -iE '\.env|\.key|\.pem|secret|credential'
-
-# 检查 diff 中是否有疑似密钥的字符串
-git diff --cached | grep -iE 'api_key|secret|password|token|auth'
+git diff --cached --name-status
+git diff --cached --check
+git diff --cached
 ```
 
-## 安全检查清单
+Use the repository's secret scanner when one exists. Pattern searches are only a supplement and can produce false positives; review matches without copying secret values into logs or chat.
 
-1. **检查 `.gitignore`**：确保 `.env`、`*.key`、`*.pem` 等敏感文件已被忽略
-2. **检查 diff**：`git diff --cached` 确认没有敏感信息
-3. **检查文件列表**：`git diff --cached --name-only` 确认没有多余文件
+## If a credential is exposed
 
-## 常见安全错误
+1. Stop pushing and stop any automation that may reuse it.
+2. Revoke or rotate the credential immediately. Deleting the file is not sufficient.
+3. Determine where it appeared: working tree, commit, PR diff, Actions log, artifact, release or chat.
+4. Notify the target repository through its private security channel.
+5. Coordinate history rewriting with the repository owner and collaborators.
+6. Invalidate caches, artifacts or releases that still contain the value.
+7. Verify the cleaned history before resuming work.
 
-| 错误 | 后果 | 正确做法 |
-|------|------|---------|
-| 提交 `.env` 文件 | 泄露数据库密码、API 密钥 | 加入 `.gitignore`，提供 `.env.example` |
-| 硬编码 API 密钥 | 密钥泄露，被滥用 | 使用环境变量 |
-| 提交 `node_modules/` | 仓库膨胀，可能含敏感配置 | 加入 `.gitignore` |
-| 提交 IDE 配置 | 可能含本地路径或密钥 | 加入 `.gitignore`（`.idea/`、`.vscode/`） |
-| 提交日志文件 | 可能含用户数据或敏感信息 | 加入 `.gitignore` |
+Do not run a generic `git filter-repo` or force-push recipe without resolving the exact affected paths, refs, forks and collaborators. History rewriting is disruptive and does not revoke a credential. Never force-push a protected/default branch without explicit repository-owner coordination.
 
-## 如果发现安全问题
+## Security vulnerabilities in the target project
 
-如果在你贡献的过程中发现了项目的安全漏洞：
-1. **不要在公开 Issue 中报告**——查看 `SECURITY.md` 中的安全报告流程
-2. 通常需要私下联系维护者或使用 GitHub Security Advisories
-3. 不要在 PR 中包含漏洞利用代码
+- Read the target repository's `SECURITY.md`.
+- Use Private Vulnerability Reporting or the specified private channel.
+- Do not first disclose the issue through a public Issue or ordinary PR.
+- Do not publish exploit code, affected versions or a fix timeline without maintainer approval.
+- Keep the scope limited to the authorized assessment; do not probe third-party systems.
+
+## Pull-request safety checklist
+
+```text
+[ ] No credentials, private paths, private data or internal hosts.
+[ ] Dependency and asset provenance is known.
+[ ] Workflow permissions use least privilege.
+[ ] Untrusted PR code is not executed with elevated secrets.
+[ ] Security claims are backed by reproduction or primary documentation.
+[ ] The target repository's disclosure policy is being followed.
+```

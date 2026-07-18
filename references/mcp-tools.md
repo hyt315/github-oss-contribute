@@ -1,56 +1,52 @@
-# GitHub MCP 工具速查
+# GitHub capability map
 
-本技能使用以下 GitHub MCP 工具（按用途分组）。
+GitHub OSS Contribute can use a platform-provided GitHub connection, the [official GitHub MCP Server](https://github.com/github/github-mcp-server), GitHub CLI, public REST API or the website.
 
-> 注意：GitHub MCP server 已将多个读取类工具合并为通用工具 + `method` 参数，
-> 例如 `pull_request_read` 替代了原来的 `get_pull_request`、`get_pull_request_files` 等。
+## Do not hardcode one tool inventory
 
-| 类别 | 工具名 | 用途 |
-|------|--------|------|
-| **用户** | `get_me` | 获取已认证用户信息 |
-| **仓库** | `get_file_contents` | 读取仓库文件或目录 |
-| | `search_repositories` | 搜索仓库 |
-| | `fork_repository` | Fork 仓库 |
-| | `create_branch` | 创建新分支 |
-| | `search_code` | 搜索代码 |
-| | `list_commits` | 获取提交记录 |
-| | `get_commit` | 获取单个提交详情 |
-| | `create_or_update_file` | 创建或更新文件 |
-| | `push_files` | 批量推送文件 |
-| | `get_repository_tree` | 获取仓库目录树 |
-| **Issue** | `issue_read` | 读取 Issue（method: `get` / `list`） |
-| | `issue_write` | 创建或更新 Issue |
-| | `search_issues` | 搜索 Issue 和 PR |
-| | `list_issues` | 列出仓库 Issue |
-| | `add_issue_comment` | 添加 Issue 评论 |
-| | `get_label` | 获取标签信息 |
-| **PR** | `pull_request_read` | 读取 PR（method: `get` / `get_files` / `get_status` / `get_reviews` / `get_comments`） |
-| | `create_pull_request` | 创建 PR |
-| | `list_pull_requests` | 列出仓库 PR |
-| | `search_pull_requests` | 搜索 PR |
-| | `update_pull_request` | 更新 PR（标题、描述、状态等） |
-| | `update_pull_request_branch` | 更新 PR 分支（同步上游） |
-| | `merge_pull_request` | 合并 PR |
-| | `pull_request_review_write` | 提交 PR 审查 |
-| | `add_reply_to_pull_request_comment` | 回复 PR 评论 |
-| **安全** | `list_code_scanning_alerts` | 列出代码扫描警报 |
-| | `get_code_scanning_alert` | 获取单个代码扫描警报 |
-| | `list_secret_scanning_alerts` | 列出密钥扫描警报 |
+GitHub MCP tools evolve. Some releases expose individual tools; others consolidate operations behind a general tool plus a `method` argument. Before using MCP:
 
-## pull_request_read method 速查
+1. inspect the tools actually exposed by the current host;
+2. select the smallest capability for the task;
+3. prefer read-only mode during repository reconnaissance;
+4. enable only required toolsets or individual tools;
+5. fall back to public API, local Git, `gh` or manual steps when a capability is absent.
 
-| method 值 | 对应旧工具名 | 用途 |
-|-----------|-------------|------|
-| `get` | 原 `get_pull_request` | 获取 PR 详情 |
-| `get_files` | 原 `get_pull_request_files` | 获取 PR 修改的文件 |
-| `get_status` | 原 `get_pull_request_status` | 获取 PR CI 状态 |
-| `get_reviews` | 原 `get_pull_request_reviews` | 获取 PR 审查记录 |
-| `get_comments` | 原 `get_pull_request_comments` | 获取 PR 审查评论 |
+## Capability mapping
 
-## issue_read method 速查
+| Need | Typical current capability | CLI / public fallback |
+| --- | --- | --- |
+| Current GitHub identity | user/context lookup | `gh api user`; not required for public reads |
+| Repository files/tree | repository contents/tree read | clone, raw URL, REST Contents API |
+| Search Issues/PRs | issue/search read | `gh issue list`, `gh search issues` |
+| Read Issue and comments | issue read | `gh issue view` |
+| Comment on Issue | issue comment/write | `gh issue comment` |
+| Fork repository | repository fork | `gh repo fork` or website |
+| Create branch/push files | Git/repository write | local Git push |
+| Read PR files/checks/reviews | pull-request read, Actions read | `gh pr view`, `gh pr diff`, `gh pr checks` |
+| Create/update PR | pull-request write | `gh pr create`, `gh pr edit` |
+| Reply to Review | pull-request comment/review write | `gh api` or website |
+| Read workflow logs | Actions list/get | `gh run view --log-failed` |
+| Security alerts | code/secret scanning read | repository Security UI, if authorized |
 
-| method 值 | 对应旧工具名 | 用途 |
-|-----------|-------------|------|
-| `get` | 原 `get_issue` | 获取单个 Issue 详情 |
+Tool names such as `issue_read`, `pull_request_read`, `actions_get`, `create_pull_request` or their aliases may be present, but the skill must verify them instead of assuming them.
 
-> 如果 GitHub MCP 不可用，所有操作均可通过 GitHub CLI（`gh`）或网页完成。
+## Authentication
+
+Public repository reconnaissance requires no credential. For writes, prefer:
+
+1. official platform GitHub connector or remote MCP OAuth;
+2. an already authenticated `gh` session;
+3. official local GitHub MCP with a trusted secret input;
+4. a repository-scoped fine-grained PAT with minimum permissions;
+5. manual website handoff.
+
+Never request a Token in chat, scan local configuration for one, or print it. Authentication failure blocks only the external action that needs authentication.
+
+## Approval
+
+Each of the following is a separate external action: Fork, Issue comment, Push, PR creation, Review reply and branch deletion. Show the exact target and content before acting. Approval for one does not authorize the others.
+
+## Official server modes
+
+The official GitHub MCP Server supports hosted remote access and a local server. It also supports read-only mode, toolsets and individual-tool allow-lists. Prefer read-only plus the smallest toolset for reconnaissance; expand only for the approved write.

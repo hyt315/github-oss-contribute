@@ -1,0 +1,26 @@
+repository: hyt315/github-oss-contribute
+description: Agent Skill for finding scoped open-source work, shipping a verified PR, and handling CI and review feedback.
+topics:
+  - agent-skills
+  - first-contribution
+  - github
+  - good-first-issue
+  - open-source
+  - open-source-contribution
+  - pull-requests
+  - contributor-guide
+  - code-review
+  - developer-tools
+features:
+  issues: true
+  discussions: true
+  private-vulnerability-reporting: true
+ruleset:
+  target: main
+  require-pull-request: true
+  require-status-check: validate
+  block-force-push: true
+  block-deletion: true
+release:
+  tag: v1.1.0
+  title: GitHub OSS Contribute v1.1.0
