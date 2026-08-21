@@ -1,6 +1,6 @@
 ---
 name: github-oss-contribute
-version: 1.1.0
+version: 1.2.0
 description: |
   开源贡献全程导航：从选 Issue 到 PR 被合并的全流程引导。
   自动分析目标仓库规则（CONTRIBUTING、CI、Branch Protection、AI Policy），
@@ -95,12 +95,14 @@ Phase 6: 跟踪 — CI 诊断、Review 处理、等待策略、直到合并
 | CODEOWNERS | `CODEOWNERS` / `.github/` / `docs/` | 谁负责审核哪些文件 |
 | PR 模板 | `.github/pull_request_template.md` | PR 必须包含什么内容 |
 | Issue 模板 | `.github/ISSUE_TEMPLATE/*.md` | Issue 报告格式要求 |
-| AI Policy | CONTRIBUTING.md 中 / `docs/` / 独立文件 | 是否允许 AI 辅助 |
+| AI Policy | CONTRIBUTING.md 中 / `docs/` / 独立文件 | 是否允许 AI 辅助、是否要求在 PR 中披露 |
 | CI 配置 | `.github/workflows/*.yml` | 有哪些自动检查 |
 | DCO/CLA 要求 | CONTRIBUTING.md 中 / `.github/` | 是否需要 Signed-off-by |
 | SECURITY.md | 根目录 / `.github/` / `docs/` | 安全漏洞报告方式 |
 | LICENSE | 根目录 | 开源许可证类型 |
 | README.md | 根目录 | 项目概述、技术栈、构建方式 |
+
+**Rulesets 与签名要求**：GitHub 已用 Rulesets 取代传统 branch protection，且 push rules 会作用于**整个 fork 网络**——上游开了 push ruleset，你的 fork 同样受约束。用 `gh api repos/{owner}/{repo}/rulesets` 列出规则，重点看：push rules、必需评审、commit signoff 要求（与 DCO 呼应）。Fork 后 push/merge 被拒时，先回这里查原因。
 
 ### 1.3 分析仓库活跃度
 
@@ -162,6 +164,8 @@ gh issue view {编号} --repo {owner}/{repo}
 > Good First Issue（goodfirstissue.dev）、CodeTriage、Up For Grabs 等，详见 `references/first-timer-tips.md`。
 
 > `good first issue` 只是候选信号，不等于允许直接开工。仍要检查是否被指派、是否有人认领、最近是否有维护者确认，以及验收条件是否清楚。
+>
+> 季节性活动（如 Hacktoberfest）期间批量低质 PR 增多，部分维护者已产生抵触——优先选「标签匹配 + 近期有维护者评论 + 验收标准明确」的 Issue，不为刷活动而提。
 
 ### 2.2 评估 Issue 可行性
 
@@ -257,7 +261,7 @@ git checkout -b fix/issue-123-description
 
 ### 4.1 代码质量自检清单
 
-> AI 辅助不是问题本身；缺少上下文、理解、验证和责任才是质量风险。详见 `references/ai-slop-guide.md`。
+> AI 辅助不是问题本身；缺少上下文、理解、验证和责任才是质量风险。curl 维护者实测 2025 年约 20% 的提交是 AI Slop、有效漏洞报告率跌到约 5%——维护者对「未披露的 AI 辅助」高度敏感，主动披露是被信任的前提。详见 `references/ai-slop-guide.md`。
 
 **提交前必须确认**：
 
@@ -268,6 +272,7 @@ git checkout -b fix/issue-123-description
 - [ ] 能解释每一处改动的理由
 - [ ] 如果使用了 AI 辅助，我理解生成的代码逻辑
 - [ ] 遵守了仓库的 AI Policy
+- [ ] 按仓库 AI Policy 在 PR 中**主动披露** AI 辅助（哪些由 AI 生成、自己如何验证）——把它当协作者而非代笔
 - [ ] 没有引入不必要的依赖
 - [ ] 没有硬编码密钥或敏感信息
 
@@ -300,11 +305,21 @@ git checkout -b fix/issue-123-description
 Closes #123
 ```
 
-常用 type：`feat`（新功能）、`fix`（修复）、`docs`（文档）、`refactor`（重构）、`test`（测试）、`chore`（杂项）
+常用 type：`feat`（新功能）、`fix`（修复）、`docs`（文档）、`refactor`（重构）、`test`（测试）、`chore`（杂项）、`perf`（性能）、`build`(构建)、`ci`（CI 配置）。规范当前仍是 1.0.0 未变；body 解释 **why**，breaking change 用 `!` 标记，不要自创 type。
 
 > 完整 type 列表、DCO Signed-off-by、GPG/SSH 签名、Gitmoji 详见 `references/commit-conventions.md`。
 
 **如果仓库要求 DCO**：`git commit -s -m "fix: ..."`（自动追加 `Signed-off-by`）
+
+**Verified commit（仓库要求签名时）**：GitHub 支持 GPG / SSH / S/MIME 三种提交签名，SSH 最轻量（复用现有 SSH key，无需维护 GPG 密钥环）：
+
+```bash
+git config --global gpg.format ssh
+git config --global user.signingkey ~/.ssh/id_ed25519.pub
+git config --global commit.gpgsign true
+```
+
+同一公钥需上传到 GitHub Settings → SSH and GPG keys 才会显示 Verified。少数项目（多为 CNCF 系）要求 Sigstore keyless 签名（gitsign），按其 CONTRIBUTING 指引配置。
 
 ### 4.4 保持与上游同步
 
@@ -314,6 +329,8 @@ git rebase upstream/main
 # 如有冲突：解决冲突 → git add <文件> → git rebase --continue
 # 想放弃：git rebase --abort
 ```
+
+> 遇到 Git 报错（detached HEAD、non-fast-forward、refusing to merge 等），先查 `references/git-errors.md` 的速查表再动手。
 
 ### 4.5 提交前最终检查
 
@@ -417,6 +434,8 @@ pull_request_read: owner="{owner}" repo="{repo}" pull_number={PR编号} method="
 
 **CI 没运行？** 首次贡献者的 PR 可能需要维护者手动批准 CI 运行——这是正常的。
 
+**CI 绿了却不合并？** 启用 Merge Queue 的仓库，approved 的 PR 要入队排队、并在合并前**重跑一遍**必需检查——approve ≠ 立即合并，不是卡住。可用 `gh pr merge --auto` 进入自动合并队列后耐心等。
+
 ### 6.2 Review 反馈处理
 
 ```
@@ -429,6 +448,8 @@ pull_request_read: owner="{owner}" repo="{repo}" pull_number={PR编号} method="
 | **APPROVED** | 通过 | 等合并 |
 | **CHANGES_REQUESTED** | 需修改 | 改完后重新 push |
 | **COMMENTED** | 评论 | 回复讨论 |
+
+**Bot Reviewer（Copilot code review、Graphite、Codacy 等）**：把机器人的意见当 lint / 静态检查处理——该修就修，不采纳则礼貌说明理由；不要误当成维护者本人的决策。Copilot 的 suggested changes 需**手动确认应用**，不会自动合入。
 
 **处理流程**：本地修改 → 提交 push → 在 PR 页面逐条回复 Reviewer。
 
@@ -476,7 +497,8 @@ git push origin --delete fix/issue-123-description
 
 ## 补充说明
 
-- **多种贡献方式**：文档改进、Issue 报告、Review、测试、社区支持、设计、翻译都算贡献
+- **多种贡献方式**：文档改进、Issue 报告、Review、测试、社区支持、设计、翻译都算贡献；triage（复现/分类 Issue）、RFC 与治理讨论也是真实路径
+- **安全漏洞披露是特殊贡献**：发现疑似漏洞**不要开公开 Issue/PR**——查目标仓库 SECURITY.md 的私密披露渠道，或走 GitHub Private vulnerability reporting（`gh api repos/{owner}/{repo}/private-vulnerability-reporting` 可查是否启用）；公开披露会把用户置于风险中
 - **Monorepo**：查看 CODEOWNERS，只改相关包，注意包间依赖
 
 ### 与 oss-prep / oss-ops 的关系
