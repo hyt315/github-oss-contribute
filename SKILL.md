@@ -55,6 +55,18 @@ description: |
 
 ---
 
+## Reference Files
+
+七个参考文件承载本技能沉淀的贡献经验。references 不会自动加载——以下时机必须读取对应文件，否则贡献引导会退化成"凭印象提 PR"：
+
+- 当起草 PR 描述或做提交前质量自检时，读 `references/ai-slop-guide.md`：反 AI Slop 的深度模式与维护者视角案例
+- 当写 commit message 或仓库要求 DCO/签名时，读 `references/commit-conventions.md`：完整 type 列表、Signed-off-by 与签名配置
+- 当回复 review 意见或与维护者沟通时，读 `references/communication-etiquette.md`：沟通模板与礼貌措辞
+- 当帮用户找第一个 Issue 时，读 `references/first-timer-tips.md`：平台清单与首次贡献技巧
+- 当遇到 Git 报错时，先查 `references/git-errors.md` 的速查表（见 Phase 4.4）
+- 当需要调用 GitHub 能力时，读 `references/mcp-tools.md`：MCP 工具映射与公开 API 回退方式
+-当做提交前安全检查或发生泄露时，读 `references/security-guide.md`：检查命令与应急流程
+
 ## 工作流程总览
 
 ```
