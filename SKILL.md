@@ -65,7 +65,7 @@ description: |
 - 当帮用户找第一个 Issue 时，读 `references/first-timer-tips.md`：平台清单与首次贡献技巧
 - 当遇到 Git 报错时，先查 `references/git-errors.md` 的速查表（见 Phase 4.4）
 - 当需要调用 GitHub 能力时，读 `references/mcp-tools.md`：MCP 工具映射与公开 API 回退方式
--当做提交前安全检查或发生泄露时，读 `references/security-guide.md`：检查命令与应急流程
+- 做提交前安全检查或发生泄露时，读 `references/security-guide.md`：检查命令与应急流程
 
 ## 工作流程总览
 
