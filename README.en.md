@@ -1,17 +1,18 @@
+# 🤝 GitHub OSS Contribute / github-oss-contribute
+
 <div align="center">
 
-# 🤝 GitHub OSS Contribute / 开源贡献导航
+**End-to-end open-source contribution guide from issue scouting to merged PR — reconnaissance before coding with explicit write-action authorization.**
 
-**Full-journey guidance from picking an Issue to getting your PR merged: read the repo's rules first, build the smallest change, earn trust with real verification and sustained responsibility.**
-
-**English · [简体中文](./README.md)**
+**从选 Issue 到 PR 被合并的全流程引导：先读懂仓库规则，再建立最小改动，用真实验证和持续责任赢得维护者信任。**
 
 [![Validate](https://github.com/hyt315/github-oss-contribute/actions/workflows/validate.yml/badge.svg)](https://github.com/hyt315/github-oss-contribute/actions/workflows/validate.yml)
 [![Release](https://img.shields.io/github/v/release/hyt315/github-oss-contribute?sort=semver)](https://github.com/hyt315/github-oss-contribute/releases/latest)
-[![Downloads](https://img.shields.io/github/downloads/hyt315/github-oss-contribute/total)](https://github.com/hyt315/github-oss-contribute/releases)
-[![Contributors](https://img.shields.io/github/contributors/hyt315/github-oss-contribute)](CONTRIBUTORS.md)
+[![Agent Skills](https://img.shields.io/badge/Agent%20Skills-compatible-1f6feb)](SKILL.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Stars](https://img.shields.io/github/stars/hyt315/github-oss-contribute?style=social)](https://github.com/hyt315/github-oss-contribute/stargazers)
+[![GitHub Stars](https://img.shields.io/github/stars/hyt315/github-oss-contribute?style=social)](https://github.com/hyt315/github-oss-contribute/stargazers)
+
+[English](./README.en.md) | [中文](./README.md)
 
 </div>
 
@@ -21,91 +22,107 @@
 
 ## 📖 What is this?
 
-A high-quality open-source contribution is not "let AI edit it and file the PR". **GitHub OSS Contribute** is an AI Agent Skill that moves the contributor's judgment *before* coding: does the project accept this kind of change, is the Issue already claimed, what local rules exist, how to verify, how maintainers prefer to communicate — and it draws a clear permission boundary before **every external action**. Six stages end to end: reconnaissance → issue selection → preparation → development → submission → tracking (CI diagnosis, review handling, waiting strategy, until merge).
+High-quality open-source contribution is not about "asking an AI to code and immediately opening a blind PR".
 
-### ✨ Core Features
+**`github-oss-contribute`** is an AI Agent Skill designed to place critical decision-making before coding: Does the project welcome this change? Has the issue already been claimed? What local CI and Rulesets exist? How should the change be verified? How do maintainers prefer to communicate? — all with **strict staged authorization before every external write action**.
 
-| Stage | What the Skill does | Quality gate |
-| --- | --- | --- |
-| Reconnaissance | Reads README, CONTRIBUTING, AGENTS, **Rulesets**, CI, templates, DCO/CLA and AI policy | Never invents rules that don't exist |
-| Issue selection | Assesses scope, reproducibility, activity, claim status and maintainer intent | Discuss big changes first; never grab claimed Issues |
-| Local development | Branch naming, minimal diff, test & commit plan, **signing and AI disclosure** | No unrelated files, no fabricated test results |
-| PR submission | Clear title, problem/solution/verification/risk description | Creating PRs, commenting and pushing require user authorization |
-| CI & Review | Reads failure logs, locates root causes, handles feedback item by item (incl. **Bot Reviewers**) | No spamming, no nagging, no hiding AI usage |
-| After merge | Branch cleanup, retrospective, finding the next contribution | One merge is not a maintainer mandate |
+A six-phase workflow ensures complete safety from **Reconnaissance → Issue Selection → Minimal Implementation → Verified PR → CI & Review Handling → Merged Retrospective**.
 
 ---
 
-## 📚 Examples: three reproducible end-to-end cases
+## ✨ Key Features
 
-1. [First contribution: reconnaissance before picking an Issue](examples/README.md#示例一第一次贡献)
-2. [CI failure: from logs to the minimal fix](examples/README.md#示例二ci-失败诊断)
-3. [Review feedback: update the code and show evidence](examples/README.md#示例三处理-review-反馈)
+| Core Phase | Operations & Focus | Quality Gates & Value |
+|---|---|---|
+| 🔍 **Phase 1: Reconnaissance** | Scans README, CONTRIBUTING, Rulesets, CI matrix, DCO/CLA, and AI policies | Never assumes rules; identifies exact boundaries |
+| 🎯 **Phase 2: Issue Selection** | Assesses scope, reproducibility, activity, and claim status | Communicates first; never hijacks claimed issues |
+| 🛠️ **Phase 3: Minimal Development** | Suggests clean branches, minimal diffs, local test runs, and commit signatures | Touches no unrelated files; no fabricated test results |
+| 📤 **Phase 4: Verified PR** | Drafts clear titles, issue context, test proof, and risk assessments | Creating PRs, comments, and pushes require explicit approval |
+| 🩺 **Phase 5: CI & Review** | Analyzes failure logs, pinpoints root cause, handles Maintainer & Bot reviews | No spamming, no rushing; presents verifiable evidence |
+| 🏆 **Phase 6: Retrospective** | Cleans up local/remote branches, consolidates learnings, scouts next tasks | Builds long-term open-source reputation |
+
+---
+
+## 📊 6-Phase Complete Pipeline Architecture
+
+```
+[Input: User wants to contribute to an open-source project]
+                              │
+     [Phase 1: Target Repository Reconnaissance] ──> CONTRIBUTING / Rulesets / AI Policy
+                              │
+     [Phase 2: Task Selection & Scoping] ─────────> Evaluate good-first-issues & claims
+                              │
+     [Phase 3: Minimal Verified Development] ─────> Minimal diff / Local test execution
+                              │
+     [Phase 4: Standardized PR Submission] ───────> Real reproduction & test evidence
+                              │
+     [Phase 5: CI Diagnostics & Review Triage] ───> Root cause logs & reviewer replies
+                              │
+     [Phase 6: Post-Merge Retrospective] ─────────> Branch cleanup & reputation building
+```
+
+---
+
+## 📚 Real-World Walkthroughs
+
+Three end-to-end verified examples, detailed in [examples/README.md](examples/README.md):
+1. [First Contribution: Reconnaissance before claiming](examples/README.md#示例一第一次贡献)
+2. [CI Failure: From raw logs to minimal fix](examples/README.md#示例二ci-失败诊断)
+3. [Review Feedback: Updating code with test evidence](examples/README.md#示例三处理-review-反馈)
 
 ---
 
 ## 🚀 Quick Start
 
-> ✨ **One-liner install into your AI agent**: paste this to your AI assistant and it will install itself:
->
-> ```text
-> Please install the github-oss-contribute Skill: clone https://github.com/hyt315/github-oss-contribute into your skills directory (Claude Code: ~/.claude/skills/github-oss-contribute/; Codex: ~/.agents/skills/github-oss-contribute/; Cursor: ~/.cursor/skills/github-oss-contribute/), and verify that SKILL.md, references/, and scripts/ are all present. Whenever I want to "find an open-source issue to contribute / file a PR / handle a CI failure or review feedback", guide me through the six-stage workflow in SKILL.md.
-> ```
+This is an AI Agent Skill — install it into your AI assistant and you're ready.
 
-| Platform | User-level install |
-| --- | --- |
-| **Claude Code** | `git clone https://github.com/hyt315/github-oss-contribute.git ~/.claude/skills/github-oss-contribute` |
-| **Codex / ChatGPT** | `git clone https://github.com/hyt315/github-oss-contribute.git ~/.agents/skills/github-oss-contribute` |
-| **Cursor** | `git clone https://github.com/hyt315/github-oss-contribute.git ~/.cursor/skills/github-oss-contribute` |
+### Option A: Paste one sentence into any Agent (recommended, most universal)
 
-> Project-level installs use `.claude/skills/`, `.agents/skills/` or `.cursor/skills/` in the project root. Restart your agent if a fresh install isn't discovered.
+Send this to your AI assistant and it will detect the platform and clone to the right skills directory:
 
----
+> Please install the github-oss-contribute skill: clone `https://github.com/hyt315/github-oss-contribute` into your skills directory (e.g. `~/.claude/skills/github-oss-contribute`, `~/.agents/skills/github-oss-contribute`, or `~/.cursor/skills/github-oss-contribute`) and confirm it works. When I want to find open-source issues, open a PR, or fix CI failures, guide me through the 6-phase workflow.
 
-## 💬 When to trigger
-
-Say any of these to your AI agent:
-
-- "I want to contribute to an open-source project" / "find me a good first issue"
-- "Help me file a PR" / "what should a first-time contributor watch out for?"
-- "My PR's CI is red" / "my PR got rejected" / "how do I reply to review comments?"
-
-## ⚙️ Prerequisites
-
-- **Git** installed (verify repo-level user.name / user.email before committing)
-- Reconnaissance of public repos needs **no authentication at all**; write capability (official connector, `gh`, MCP OAuth, fine-grained PAT, or manual web) is only checked before Fork / comment / push / PR creation — in that priority order
-- Never paste tokens into chat; when auth is unavailable, read-only reconnaissance and local work continue — only the blocked external writes pause
-
-## 📦 Deliverables
-
-```text
-📋 Reconnaissance report — contribution rules / activity rating / AI Policy / DCO-CLA / watch-outs
-🎯 Issue shortlist       — scored candidates + claim status + a draft "I'd like to work on this" comment
-🛠️ Dev & commit plan     — branch naming / minimal diff / commit conventions / signing & disclosure
-📤 High-quality PR       — title / description / test evidence / AI disclosure (per repo template)
-🩺 CI & Review           — failure root-cause / item-by-item feedback / waiting strategy / Merge Queue notes
-```
-
----
-
-## 📥 Download / Install
+### Option B: GitHub CLI 2.90+ (one command)
 
 ```bash
-# HTTPS
-git clone https://github.com/hyt315/github-oss-contribute.git
-
-# SSH
-git clone git@github.com:hyt315/github-oss-contribute.git
-
-# GitHub CLI
-gh repo clone hyt315/github-oss-contribute
-
-# ZIP
-# https://github.com/hyt315/github-oss-contribute/archive/refs/heads/main.zip
-
-# Single file (SKILL.md only)
-curl -O https://raw.githubusercontent.com/hyt315/github-oss-contribute/main/SKILL.md
+gh skill install hyt315/github-oss-contribute github-oss-contribute --agent claude-code --scope user
 ```
+
+### Option C: Manual per-platform install
+
+| Platform | User-level Path | Project-level Path |
+|---|---|---|
+| **Claude Code** | `git clone https://github.com/hyt315/github-oss-contribute.git ~/.claude/skills/github-oss-contribute` | `.claude/skills/github-oss-contribute` |
+| **Codex** | `git clone https://github.com/hyt315/github-oss-contribute.git ~/.agents/skills/github-oss-contribute` | `.agents/skills/github-oss-contribute` |
+| **Cursor** | `git clone https://github.com/hyt315/github-oss-contribute.git ~/.cursor/skills/github-oss-contribute` | `.cursor/skills/github-oss-contribute` |
+| **General Agents** | `git clone https://github.com/hyt315/github-oss-contribute.git ~/.agents/skills/github-oss-contribute` | `.agents/skills/github-oss-contribute` |
+
+### Option D: Run local regression selftest
+
+```powershell
+python scripts/selftest.py
+```
+
+---
+
+## 🔒 Permission Boundaries & Safety Principles
+
+- **Zero-Token Reconnaissance**: Public repository rule analysis runs read-only without credentials;
+- **Staged Approvals for Writes**: Forking, issue commenting, remote branch pushing, and PR opening require explicit approval;
+- **Honest Evidence**: Zero fabricated test passes; adheres strictly to target repo's AI code disclosure guidelines.
+
+---
+
+## 📥 Download
+
+| Method | Command / Link |
+|---|---|
+| **HTTPS** | `git clone https://github.com/hyt315/github-oss-contribute.git` |
+| **SSH** | `git clone git@github.com:hyt315/github-oss-contribute.git` |
+| **GitHub CLI** | `gh repo clone hyt315/github-oss-contribute` |
+| **ZIP** | [Download ZIP](https://github.com/hyt315/github-oss-contribute/archive/refs/heads/main.zip) |
+| **Tarball** | [Download Tar](https://github.com/hyt315/github-oss-contribute/archive/refs/heads/main.tar.gz) |
+| **Single file (SKILL.md)** | `curl -O https://raw.githubusercontent.com/hyt315/github-oss-contribute/main/SKILL.md` |
 
 ---
 
@@ -113,50 +130,49 @@ curl -O https://raw.githubusercontent.com/hyt315/github-oss-contribute/main/SKIL
 
 ```
 github-oss-contribute/
-├── SKILL.md                        # entry point (six-stage workflow)
-├── references/
-│   ├── ai-slop-guide.md            # anti-AI-slop deep guide
-│   ├── commit-conventions.md       # commit conventions / DCO / signing
-│   ├── communication-etiquette.md  # review communication templates
-│   ├── first-timer-tips.md         # first-timer tips & platforms
-│   ├── git-errors.md               # Git error quick reference
-│   ├── mcp-tools.md                # GitHub capability mapping & fallbacks
-│   └── security-guide.md           # security practice & leak response
+├── SKILL.md                          # Core skill definition and 6-phase workflow
+├── README.md                         # Chinese documentation
+├── README.en.md                      # English documentation
+├── CHANGELOG.md                      # Version history
+├── LICENSE                           # MIT License
+├── .gitignore                        # Git ignore rules
+├── CONTRIBUTING.md                   # Contribution guide
+├── CODE_OF_CONDUCT.md                # Code of conduct
+├── SECURITY.md                       # Security policy
+├── SUPPORT.md                        # Support channels
+├── manifest.json                     # Skill manifest
+├── agents/                           # Multi-agent metadata
+├── examples/README.md                # 3 Verified end-to-end case studies
 ├── scripts/
-│   ├── validate-skill.mjs          # structure validation (CI)
-│   └── selftest.py                 # regression (good fixture green + negatives caught)
-├── examples/README.md              # three end-to-end examples
-├── agents/openai.yaml
-├── LICENSE / CHANGELOG.md
-├── README.md  /  README.en.md     # bilingual docs (this file is English)
-└── .github/                        # Issue/PR templates + CI(validate)
+│   ├── validate-skill.mjs            # Validator
+│   ├── validate_repo.py              # Structure validator
+│   └── selftest.py                   # Automated regression test runner
+└── references/                       # Reconnaissance methods & PR guides
 ```
 
 ---
 
-## ▶️ Quick Usage
+## ❓ FAQ
 
-Each stage stands alone — you may be stuck on just one:
-
-1. **Reconnaissance**: give `owner/repo`, get a recon report (rules / activity / Rulesets / AI Policy)
-2. **Issue selection**: search & score candidates, get a shortlist and a communication draft
-3. **Preparation**: Fork → Clone → upstream → feature branch → local environment
-4. **Development**: quality checklist → security practice → commit conventions → sync with upstream
-5. **Submission**: push (with force-with-lease boundaries) → create PR → verify file list
-6. **Tracking**: CI diagnosis (incl. Merge Queue) → review handling (incl. Bot Reviewers) → waiting strategy → post-merge cleanup
+- **Q: What if my first PR gets rejected?**  
+  A: Phases 1 and 2 guide you through reading CONTRIBUTING guidelines and choosing `good first issue` tasks, reducing the risk of rejection.
+- **Q: What if the PR's CI turns red?**  
+  A: Phase 5 parses CI raw logs, locates the exact failing assertion, and assists in drafting a minimal fix.
+- **Q: Will it push code to remote repositories automatically?**  
+  A: Never. All external actions (Fork, Push, PR) require explicit user approval.
 
 ---
 
-## 🤝 Contributing / Feedback
+## 🤝 Contributing
 
-- Report bugs / suggestions: use the repo's Issue templates
-- Contribute: see [CONTRIBUTING.md](CONTRIBUTING.md); run `python scripts/selftest.py` and `node scripts/validate-skill.mjs` before any PR
-- Security: see [SECURITY.md](SECURITY.md) (private vulnerability reporting, not public issues)
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md). If this skill helped you, please give it a [Star ⭐](https://github.com/hyt315/github-oss-contribute/stargazers)!
 
 ---
 
-## 📜 License
+## 📄 License
 
-[MIT](LICENSE) © 2026 hyt315
+Licensed under the [MIT License](LICENSE).
+
+---
 
 > 🌏 **中文版: [README.md](./README.md)**

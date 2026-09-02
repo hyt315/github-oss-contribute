@@ -1,17 +1,18 @@
-<div align="center">
-
 # 🤝 GitHub OSS Contribute / 开源贡献导航
 
-**从选 Issue 到 PR 被合并的全流程引导：先读懂仓库规则，再建立最小改动，用真实验证和持续责任赢得信任。**
+<div align="center">
 
-**简体中文 · [English](./README.en.md)**
+**从选 Issue 到 PR 被合并的全流程引导：先读懂仓库规则，再建立最小改动，用真实验证和持续责任赢得维护者信任。**
+
+**End-to-end open-source contribution guide from issue scouting to merged PR — reconnaissance before coding with explicit write-action authorization.**
 
 [![Validate](https://github.com/hyt315/github-oss-contribute/actions/workflows/validate.yml/badge.svg)](https://github.com/hyt315/github-oss-contribute/actions/workflows/validate.yml)
 [![Release](https://img.shields.io/github/v/release/hyt315/github-oss-contribute?sort=semver)](https://github.com/hyt315/github-oss-contribute/releases/latest)
-[![Downloads](https://img.shields.io/github/downloads/hyt315/github-oss-contribute/total)](https://github.com/hyt315/github-oss-contribute/releases)
-[![Contributors](https://img.shields.io/github/contributors/hyt315/github-oss-contribute)](CONTRIBUTORS.md)
+[![Agent Skills](https://img.shields.io/badge/Agent%20Skills-compatible-1f6feb)](SKILL.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Stars](https://img.shields.io/github/stars/hyt315/github-oss-contribute?style=social)](https://github.com/hyt315/github-oss-contribute/stargazers)
+[![GitHub Stars](https://img.shields.io/github/stars/hyt315/github-oss-contribute?style=social)](https://github.com/hyt315/github-oss-contribute/stargazers)
+
+[English](./README.en.md) | [中文](./README.md)
 
 </div>
 
@@ -21,23 +22,50 @@
 
 ## 📖 这是什么？
 
-高质量开源贡献不是"让 AI 改完直接提 PR"。**GitHub OSS Contribute** 是一个 AI Agent Skill，把贡献者需要做的判断放到编码之前：项目是否接受这类改动、Issue 是否已被认领、仓库有哪些本地规则、怎样验证、维护者希望如何交流——并在**每个外部动作前明确权限边界**。六阶段全程引导：仓库侦察 → 选题 → 准备 → 开发 → 提交 → 跟踪（CI 诊断、Review 处理、等待策略、直到合并）。
+高质量开源贡献不是“让 AI 改完代码直接提 PR 碰运气”。
 
-### ✨ 核心特性
+**`github-oss-contribute`** 是一个专为开发者与 AI Agent 打造的专业级开源贡献指引技能。它将贡献者需要做的关键判断前置到编码之前：目标项目是否接受此类改动、Issue 是否已被其他贡献者认领、仓库有哪些本地 CI 与 Rulesets 规则、如何进行真实验证、维护者希望如何沟通——并在**每一个外部写操作前执行严格的授权确认**。
 
-| 阶段 | Skill 会做什么 | 质量门禁 |
-| --- | --- | --- |
-| 仓库侦察 | 读取 README、CONTRIBUTING、AGENTS、**Rulesets**、CI、模板、DCO/CLA 和 AI policy | 不臆测不存在的规则 |
-| 选择 Issue | 评估范围、复现性、活跃度、认领状态和维护者意图 | 大改先沟通，不抢已认领 Issue |
-| 本地开发 | 建议分支、最小改动、测试与提交方案、**签名与 AI 披露** | 不动无关文件，不伪造测试结果 |
-| PR 提交 | 生成清晰标题、问题/方案/验证/风险说明 | 创建 PR、评论和推送需用户授权 |
-| CI 与 Review | 读取失败日志、定位根因、逐条处理反馈（含 **Bot Reviewer**） | 不刷屏、不催促、不隐藏 AI 使用 |
-| 合并后 | 清理分支、复盘、寻找下一项贡献 | 不把一次合并当成维护者授权 |
+从 **仓库侦察 → 选题定位 → 本地开发 → PR 提交 → CI 诊断与 Review 处理 → 合并复盘**，全流程六阶段保驾护航。
 
 ---
 
-## 📚 示例：三个可复核的端到端案例
+## ✨ 核心特性
 
+| 核心阶段 | 覆盖功能与操作 | 带来价值与质量门禁 |
+|---|---|---|
+| 🔍 **Phase 1: 仓库侦察** | 读取 README、CONTRIBUTING、Rulesets、CI 矩阵、DCO/CLA 与 AI Policy | 不臆测不存在的规则，100% 摸清项目红线 |
+| 🎯 **Phase 2: 选题定位** | 评估 Issue 范围、复现难度、活跃度与认领状态 | 大改先沟通，绝不抢他人已认领的 Issue |
+| 🛠️ **Phase 3: 本地开发** | 建议规范分支、最小改动方案、真实自测、GPG 签名与 AI 披露 | 不动无关代码，严禁伪造测试结果 |
+| 📤 **Phase 4: PR 提交** | 按仓库模板起草清晰标题、问题背景、测试证据与风险评估 | 每一条 PR 创建、评论与推送均需用户明确授权 |
+| 🩺 **Phase 5: CI 与 Review** | 读取失败日志定位根因、逐条处理 Maintainer 与 Bot Reviewer 反馈 | 不刷屏、不催促，诚实给出修改证据 |
+| 🏆 **Phase 6: 合并复盘** | 清理本地与远程分支、复盘贡献收获、探索下一个可贡献任务 | 建立长期良好的开源开发者信誉 |
+
+---
+
+## 📊 开源贡献六阶段全流程架构
+
+```
+[输入: 用户想要给某个开源项目贡献代码]
+                         │
+      [Phase 1: 目标仓库深度侦察] ──> 贡献准则 / AI 策略 / DCO 协议 / 活跃度
+                         │
+      [Phase 2: 选题评估与先沟通] ──> 匹配 good first issue，判断是否已被认领
+                         │
+      [Phase 3: 本地最小改动开发] ──> 规范分支 / 单元测试实跑 / 保持最小侵入
+                         │
+      [Phase 4: 规范化提 PR 交付] ──> 附带复现与测试证据 / 需用户显式授权
+                         │
+      [Phase 5: CI 诊断与 Review] ──> 诊断红标 CI / 逐条处理维护者与 Bot 反馈
+                         │
+      [Phase 6: 合并后复盘与清理] ──> 分支收尾，沉淀开源信誉与后续选题
+```
+
+---
+
+## 📚 实战案例演示
+
+三个端到端可复核实战案例，详见 [examples/README.md](examples/README.md)：
 1. [第一次贡献：先侦察再选 Issue](examples/README.md#示例一第一次贡献)
 2. [CI 失败：从日志定位到最小修复](examples/README.md#示例二ci-失败诊断)
 3. [Review 反馈：更新代码并给出证据](examples/README.md#示例三处理-review-反馈)
@@ -46,66 +74,55 @@
 
 ## 🚀 快速开始
 
-> ✨ **一句话装进 AI Agent**：把下面这段话直接发给你的 AI 助手，它会自动完成安装——
->
-> ```text
-> 请安装 github-oss-contribute Skill：把 https://github.com/hyt315/github-oss-contribute 克隆到你的 skills 目录（Claude Code：~/.claude/skills/github-oss-contribute/；Codex：~/.agents/skills/github-oss-contribute/；Cursor：~/.cursor/skills/github-oss-contribute/），并确认 SKILL.md、references/、scripts/ 都在。以后我要「找开源 Issue 贡献 / 提 PR / 处理 CI 失败或 review 意见」时，按 SKILL.md 的六阶段流程引导我完成。
-> ```
+这是一个标准的 AI Agent Skill —— 安装到你的 AI 助手后即可直接使用。
 
-| 平台 | 用户级安装 |
-| --- | --- |
-| **Claude Code** | `git clone https://github.com/hyt315/github-oss-contribute.git ~/.claude/skills/github-oss-contribute` |
-| **Codex / ChatGPT** | `git clone https://github.com/hyt315/github-oss-contribute.git ~/.agents/skills/github-oss-contribute` |
-| **Cursor** | `git clone https://github.com/hyt315/github-oss-contribute.git ~/.cursor/skills/github-oss-contribute` |
+### 方式 A：把一句话发给任意 Agent（最推荐、最通用）
 
-> 项目级安装把路径换成 `.claude/skills/`、`.agents/skills/`、`.cursor/skills/`（项目根目录）。新安装未发现时重启对应 Agent。
+把下面这段话直接复制发送给你的 AI 助手，它会自动完成安装：
 
----
+> 请安装 github-oss-contribute 技能：克隆 `https://github.com/hyt315/github-oss-contribute` 到你的 skills 目录（如 `~/.claude/skills/github-oss-contribute`、`~/.agents/skills/github-oss-contribute` 或 `~/.cursor/skills/github-oss-contribute`），并确认安装成功。以后我要「找开源 Issue 贡献 / 提 PR / 处理 CI 失败或 review 意见」时，按 SKILL.md 的六阶段流程引导我完成。
 
-## 💬 触发方式
-
-对 AI 说以下任意一类话，即会触发本技能：
-
-- 「我想给开源项目做贡献」「找个 good first issue」
-- 「帮我提个 PR」「第一次贡献要注意什么」
-- 「我的 PR 的 CI 红了」「PR 被拒了怎么办」「review 意见怎么回」
-
-## ⚙️ 前置条件
-
-- **Git** 已安装（提交前核对仓库级 user.name / user.email）
-- 公开仓库的侦察**无需任何认证**；只有 Fork / 评论 / Push / 建 PR 时才需要 GitHub 写入能力（官方连接、`gh`、MCP OAuth、fine-grained PAT 或网页手动操作，按此优先级）
-- 不要求把 Token 发到聊天；认证不可用时只读侦察与本地工作照常进行，只暂停被阻塞的外部写入
-
-## 📦 输出交付物
-
-```text
-📋 仓库侦察报告   —— 贡献规则/活跃度评级/AI Policy/DCO-CLA/注意事项
-🎯 选题建议       —— 候选 Issue 评分 + 认领状态 + 先沟通草稿
-🛠️ 开发与提交方案 —— 分支命名/最小改动/Commit 规范/签名与披露
-📤 高质量 PR      —— 标题/描述/测试证据/AI 披露（按仓库模板）
-🩺 CI 与 Review   —— 失败根因定位/逐条反馈处理/等待期策略/Merge Queue 说明
-```
-
----
-
-## 📥 下载 / 安装
+### 方式 B：GitHub CLI 2.90+（一行命令）
 
 ```bash
-# HTTPS
-git clone https://github.com/hyt315/github-oss-contribute.git
-
-# SSH
-git clone git@github.com:hyt315/github-oss-contribute.git
-
-# GitHub CLI
-gh repo clone hyt315/github-oss-contribute
-
-# ZIP
-# https://github.com/hyt315/github-oss-contribute/archive/refs/heads/main.zip
-
-# 单文件（仅 SKILL.md）
-curl -O https://raw.githubusercontent.com/hyt315/github-oss-contribute/main/SKILL.md
+gh skill install hyt315/github-oss-contribute github-oss-contribute --agent claude-code --scope user
 ```
+
+### 方式 C：多平台手动安装
+
+| 平台 | 用户级安装路径 | 项目级安装路径 |
+|---|---|---|
+| **Claude Code** | `git clone https://github.com/hyt315/github-oss-contribute.git ~/.claude/skills/github-oss-contribute` | `.claude/skills/github-oss-contribute` |
+| **Codex** | `git clone https://github.com/hyt315/github-oss-contribute.git ~/.agents/skills/github-oss-contribute` | `.agents/skills/github-oss-contribute` |
+| **Cursor** | `git clone https://github.com/hyt315/github-oss-contribute.git ~/.cursor/skills/github-oss-contribute` | `.cursor/skills/github-oss-contribute` |
+| **通用 Agents** | `git clone https://github.com/hyt315/github-oss-contribute.git ~/.agents/skills/github-oss-contribute` | `.agents/skills/github-oss-contribute` |
+
+### 方式 D：本地运行回归自测
+
+```powershell
+python scripts/selftest.py
+```
+
+---
+
+## 🔒 权限边界与安全原则
+
+- **侦察无需任何 Token**：公开仓库的只读规则分析与代码阅读无需凭据；
+- **写操作分阶段授权**：Fork 仓库、提交 Issue 评论、向远程 Push 分支、创建 PR 均需用户明确批准；
+- **真实透明原则**：严禁伪造测试通过结果，遵守目标仓库的 AI 生成代码披露准则。
+
+---
+
+## 📥 下载与获取
+
+| 方式 | 命令 / 链接 |
+|---|---|
+| **HTTPS** | `git clone https://github.com/hyt315/github-oss-contribute.git` |
+| **SSH** | `git clone git@github.com:hyt315/github-oss-contribute.git` |
+| **GitHub CLI** | `gh repo clone hyt315/github-oss-contribute` |
+| **ZIP 压缩包** | [下载 ZIP](https://github.com/hyt315/github-oss-contribute/archive/refs/heads/main.zip) |
+| **Tar 归档** | [下载 Tar](https://github.com/hyt315/github-oss-contribute/archive/refs/heads/main.tar.gz) |
+| **单文件 (SKILL.md)** | `curl -O https://raw.githubusercontent.com/hyt315/github-oss-contribute/main/SKILL.md` |
 
 ---
 
@@ -113,50 +130,49 @@ curl -O https://raw.githubusercontent.com/hyt315/github-oss-contribute/main/SKIL
 
 ```
 github-oss-contribute/
-├── SKILL.md                        # 技能入口（六阶段工作流）
-├── references/
-│   ├── ai-slop-guide.md            # 反 AI Slop 深度指南
-│   ├── commit-conventions.md       # Commit 规范/DCO/签名
-│   ├── communication-etiquette.md  # Review 沟通模板
-│   ├── first-timer-tips.md         # 首次贡献者技巧与平台
-│   ├── git-errors.md               # Git 报错速查表
-│   ├── mcp-tools.md                # GitHub 能力映射与回退
-│   └── security-guide.md           # 安全实践与泄露应急
+├── SKILL.md                          # 核心技能定义与六阶段贡献工作流
+├── README.md                         # 中文说明文档
+├── README.en.md                      # 英文说明文档
+├── CHANGELOG.md                      # 版本发布记录
+├── LICENSE                           # MIT 开源许可证
+├── .gitignore                        # Git 忽略规则
+├── CONTRIBUTING.md                   # 社区贡献指南
+├── CODE_OF_CONDUCT.md                # 行为准则
+├── SECURITY.md                       # 安全策略
+├── SUPPORT.md                        # 支持渠道
+├── manifest.json                     # 技能元数据清单
+├── agents/                           # 多 Agent 平台元数据
+├── examples/README.md                # 三个可复核的端到端案例
 ├── scripts/
-│   ├── validate-skill.mjs          # 结构校验（CI 用）
-│   └── selftest.py                 # 回归测试（好夹具绿 + 负向被抓）
-├── examples/README.md              # 三个端到端示例
-├── agents/openai.yaml
-├── LICENSE / CHANGELOG.md
-├── README.md  /  README.en.md     # 双语说明（本文件为中文）
-└── .github/                        # Issue/PR 模板 + CI(validate)
+│   ├── validate-skill.mjs            # 技能自检器
+│   ├── validate_repo.py              # 结构与隐私安全验证器
+│   └── selftest.py                   # 自动化回归自测脚本
+└── references/                       # 侦察方法、PR 模板与 Review 指南
 ```
 
 ---
 
-## ▶️ 快速使用
+## ❓ 常见问题 (FAQ)
 
-六阶段各自独立可用——你可能只卡在某个环节：
-
-1. **侦察**：给出 `owner/repo`，产出仓库侦察报告（规则/活跃度/Rulesets/AI Policy）
-2. **选题**：搜索并评估候选 Issue，输出选题建议与沟通草稿
-3. **准备**：Fork → Clone → upstream → 功能分支 → 本地环境
-4. **开发**：质量自检清单 → 安全实践 → Commit 规范 → 与上游同步
-5. **提交**：push（含 force-with-lease 边界）→ 建 PR → 验证文件列表
-6. **跟踪**：CI 诊断（含 Merge Queue）→ Review 处理（含 Bot Reviewer）→ 等待策略 → 合并后清理
+- **Q: 刚开始给大项目贡献代码，会不会被维护者拒绝？**  
+  A: 技能在 Phase 1~2 会引导你先阅读 CONTRIBUTING 并选择标记有 `good first issue` 的任务，避免因不熟悉规范而被无情拒绝。
+- **Q: PR 里的 CI 自动化测试红了怎么办？**  
+  A: 技能在 Phase 5 会自动帮你抓取 CI 报错日志，定位具体报错行，并指导你编写针对性的最小修复代码。
+- **Q: 它会擅自帮我直接把代码推送到别人的仓库吗？**  
+  A: 绝不会。所有对外部的写操作（Fork、Push、PR）都严格处于用户确认门禁之内。
 
 ---
 
-## 🤝 贡献 / 反馈
+## 🤝 参与贡献
 
-- 报 Bug / 提建议：用仓库的 Issue 模板
-- 贡献：见 [CONTRIBUTING.md](CONTRIBUTING.md)，改动前跑 `python scripts/selftest.py` 与 `node scripts/validate-skill.mjs`
-- 漏洞报告：见 [SECURITY.md](SECURITY.md)（私有漏洞报告，勿走公开 Issue）
+欢迎提交 Issue 与 Pull Request！详见 [CONTRIBUTING.md](CONTRIBUTING.md)。如果这个技能对你有帮助，欢迎在 GitHub 上点个 [Star ⭐](https://github.com/hyt315/github-oss-contribute/stargazers)！
 
 ---
 
-## 📜 License
+## 📄 开源协议
 
-[MIT](LICENSE) © 2026 hyt315
+本项目采用 [MIT 许可证](LICENSE) 开源。
 
-> 🌏 **English version: [README.en.md](./README.en.md)**
+---
+
+> 🌏 **English: [README.en.md](./README.en.md)**
