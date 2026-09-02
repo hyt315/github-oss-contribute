@@ -72,7 +72,7 @@ if not any("Phase" in f for f in bad_root_failures):
     failures.append("negative: missing-phase sample NOT detected")
 
 # 负向用例：孤儿引用检测必须生效（抽掉一个真实引用，让磁盘文件变孤儿）
-no_ref_text = text.replace("`references/ai-slop-guide.md`", "ai-slop-guide")
+no_ref_text = text.replace("references/ai-slop-guide.md", "ai-slop-guide")
 orph = [f for f in check_skill_text(no_ref_text, ROOT.name) if "orphan" in f]
 if not orph:
     failures.append("negative: orphan reference NOT detected")

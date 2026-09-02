@@ -1,4 +1,18 @@
-# AI-assisted contribution quality guide
+# 反 AI Slop 深度指南与质量自检
+
+> 帮助开源贡献者在充分借助 AI 助手加速开发的同时，严守代码质量、原理自证与社区贡献伦理。
+
+---
+
+## 目录
+
+- [一、为什么维护者警惕 AI Slop](#一为什么维护者警惕-ai-slop)
+- [二、AI Slop 的典型反模式](#二ai-slop-的典型反模式)
+- [三、2026 贡献者 Human-in-the-Loop 三大自证铁律](#2026-ai-辅助贡献自检与自证准则-human-in-the-loop)
+- [四、高质量 PR 描述编写模板](#四高质量-pr-描述编写模板)
+- [五、AI 辅助贡献的合规披露与 Git Trailers](#五ai-辅助贡献的合规披露与-git-trailers)
+
+---
 
 The problem is not the use of AI itself. The problem is sending maintainers work that lacks context, understanding, verification or ownership. This guide defines an evidence-based quality gate without inventing a universal “AI policy.”
 
@@ -95,3 +109,21 @@ Communication
 3. Reduce scope or provide missing evidence when the maintainer invites revision.
 4. Close the PR when the project does not want the change.
 5. Do not reopen, duplicate or move the same unsolicited change to another channel.
+
+---
+
+## 2026 AI 辅助贡献自检与自证准则 (Human-in-the-Loop)
+
+在充分借助 AI 助手加速开发的同时，贡献者必须满足以下三大自检铁律，避免被维护者判定为无意义的 AI Slop：
+
+### 1. 原理自证（Comprehension Proof）
+- **核心标准**：提交的每一行代码、每一个参数、每一个正则，贡献者本人必须能够用人类自然语言清晰解释其工作原理与选型理由；
+- **自问自答**：“如果维护者问我为什么这里要用这套逻辑而不是另一种，我能给出有说服力的回答吗？”
+
+### 2. 测试自证（Testing Proof）
+- **核心标准**：任何功能改动或 Bug 修复，必须附带真实的本地单元测试或复现脚本；
+- **自问自答**：“我是否在本地终端完整跑通了新增测试，并断言其能够成功拦截历史 Bug？”
+
+### 3. 最小范围（Minimal Scope）
+- **核心标准**：严格聚焦目标 Issue，绝不在同一个 PR 中顺手做大范围的代码重命名、排版微调或添加无关依赖；
+- **自问自答**：“这个 PR 的 Diff 是否做到了最小可行修改？”

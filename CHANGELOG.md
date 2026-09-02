@@ -1,8 +1,20 @@
 # Changelog
 
-All notable changes to GitHub OSS Contribute are documented here.
+本项目采用 [Conventional Commits](https://www.conventionalcommits.org/) 格式记录变更。
 
-## [1.2.0] - 2026-08-21
+## [2.0.0] - 2026-09-02
+
+### 🌟 Major Upgrade: 全程开源贡献智能导航、Git 冲突消解、DCO 签名与反 AI Slop 质量门禁
+
+- **渐进式调度架构重构**：`SKILL.md` 瘦身为轻量高信号调度中枢（99 行，~2100 tokens），严格按需索引 9 本参考手册；
+- **上游 Fork 同步与 Rebase 冲突消解指南**：新增 `references/git-fork-and-conflict-guide.md`，覆盖 upstream remote 配置、特性分支隔离与 4 步冲突消解法；
+- **DCO 签署、CLA 协议与 SSH Commit 签名实战**：新增 `references/dco-cla-and-signing.md`，提供 `-s` 补签名命令与 GPG/SSH Verified 绿标配置；
+- **CI 失败自诊断与排查四步法**：新增 `references/ci-troubleshooting.md`，覆盖 GitHub Actions 日志分析、本地复现与 Flaky Test 处理；
+- **2026 AI 辅助贡献伦理与反 AI Slop 准则升级**：升级 `references/ai-slop-guide.md`，确立原理自证、测试自证与最小改动范围三大铁律；
+- **全场景沟通模板库扩充**：扩充 `references/communication-etiquette.md`，新增 Issue 认领、Review 探讨与温和催单文案；
+- **门面与文档全面升级**：中英双语 README 达到 PREP 黄金规范标准。
+
+] - 2026-08-21
 
 ### Added
 
