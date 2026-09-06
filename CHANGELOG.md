@@ -2,6 +2,26 @@
 
 本项目采用 [Conventional Commits](https://www.conventionalcommits.org/) 格式记录变更。
 
+## [2.1.0] - 2026-09-06
+
+### Added
+- **开源贡献核心避坑库与官方规范基线 (`references/github-oss-contribute-pitfalls.md`)**：
+  - 覆盖直接从 Fork 的 `main` 分支提 PR 的“多重毁灭”陷阱与独立特性分支隔离铁律；
+  - 覆盖 `git merge upstream/main` 破坏线性历史机理与推荐的 `git fetch` + `git rebase` + `git rerere` 标准变基工作流；
+  - 覆盖 2025/2026 顶级开源项目严厉的 Anti-AI Slop 政策，规范原理自证、测试自证与最小侵入准则；
+  - 覆盖 DCO `Signed-off-by` 邮箱一致性匹配失败救场与 CLA 签署流程；
+  - 覆盖 GitHub PR 自动关闭 Issue 语法规范（`Fixes #123`）与 Fork PR 的 Actions CI 权限壁垒。
+- **本地贡献分支校验工具 (`scripts/validate_contribution.py`)**：
+  - 支持 `--json` 结构化机读导出、`--quick` 快速采样与 `--read-only` 纯只读模式；
+  - 自动检测当前是否在 main/master 默认分支、最新 commit 是否缺失 DCO 签名、是否存在敏感凭据或个人绝对路径。
+- **开源贡献就绪事实卡 (Fact Card)**：在 `SKILL.md` 中规范标准 Markdown 分层事实卡（分支隔离、隐私安全、提交质量、法律合规、反 AI Slop、关联指引）。
+- **标准 Pytest 测试入口 (`tests/test_skill.py`)**：提供标准测试套件入口，支持 CI 集成。
+
+### Changed
+- **指令工程全面升级 (Inline Action Directives)**：彻底消除 `SKILL.md` 中的“详见/可参考”弱引用，全量升级为 `👉 动作：先读 [文件]` 就近内联动作指令。
+- **只读安全原则与授权提交铁律**：确立前期侦察 100% 纯只读 Zero-Mutation 纪律，Fork、Push 与 PR 创建明确声明须用户显式授权。
+- **自测套件强化 (`scripts/selftest.py`)**：集成 Python 原生 `ast.parse` 静态语法解析门禁、避坑库深度断言、负向拦截夹具与 `validate_contribution.py --json` 联测。
+
 ## [2.0.0] - 2026-09-02
 
 ### 🌟 Major Upgrade: 全程开源贡献智能导航、Git 冲突消解、DCO 签名与反 AI Slop 质量门禁

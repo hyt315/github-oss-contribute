@@ -160,6 +160,7 @@ python path/to/skill-doctor/scripts/audit.py . --dynamic
 
 | 参考文档 | 核心内容 | 推荐阅读时机 | 预估耗时 |
 |---|---|---|---|
+| 🚨 [**开源贡献避坑库与官方规范基线 (`github-oss-contribute-pitfalls.md`)**](references/github-oss-contribute-pitfalls.md) | Fork main 分支死锁、Rebase 变基、DCO 邮箱一致性、反 AI Slop 与 CI 权限壁垒 | 评估贡献准入与排查深水陷阱时 | 4 分钟 |
 | 🍴 [**Fork 与冲突消解指南 (`git-fork-and-conflict-guide.md`)**](references/git-fork-and-conflict-guide.md) | Upstream 配置、分支隔离与 Rebase 冲突消解四步法 | 准备开发分支或遇到 Git 冲突时 | 4 分钟 |
 | ✍️ [**DCO、CLA 与签名指南 (`dco-cla-and-signing.md`)**](references/dco-cla-and-signing.md) | DCO `-s` 签署、批量补签名命令与 SSH Commit 签名 | 提交代码或被 DCO 检查拦截时 | 4 分钟 |
 | 🛡️ [**反 AI Slop 质量准则 (`ai-slop-guide.md`)**](references/ai-slop-guide.md) | 2026 贡献者三大自证铁律（原理/测试/最小范围）与 PR 描述规范 | 起草 PR 描述与提交前自检时 | 4 分钟 |
@@ -192,9 +193,13 @@ github-oss-contribute/
 ├── assets/                           # 门面配图与预览图
 ├── examples/                         # 三大实战案例
 ├── scripts/
+│   ├── validate_contribution.py      # 本地贡献分支、DCO 与隐私安全校验器
 │   ├── validate-skill.mjs            # 结构与安全校验脚本
 │   └── selftest.py                   # 自动化回归自测脚本
-└── references/                       # 10 本深度贡献手册
+├── tests/
+│   └── test_skill.py                 # Pytest 自动化测试套件入口
+└── references/                       # 11 本深度贡献手册
+    ├── github-oss-contribute-pitfalls.md # 开源贡献核心避坑库与官方规范基线
     ├── git-fork-and-conflict-guide.md # Upstream 配置与 Rebase 冲突消解
     ├── dco-cla-and-signing.md        # DCO 签署、补签与 SSH Commit 签名
     ├── ai-slop-guide.md              # 2026 贡献者三大自证与反 AI Slop 准则

@@ -160,6 +160,7 @@ python path/to/skill-doctor/scripts/audit.py . --dynamic
 
 | Reference Guide | Core Focus | When to Read | Estimated Time |
 |---|---|---|---|
+| 🚨 [**Contribution Killer Pitfalls & Baselines (`github-oss-contribute-pitfalls.md`)**](references/github-oss-contribute-pitfalls.md) | Fork main PR deadlock, Rebase history hygiene, DCO email mismatch & CI secrets barriers | When assessing contribution standards and avoiding deep traps | 4 mins |
 | 🍴 [**Fork & Conflict Resolution (`git-fork-and-conflict-guide.md`)**](references/git-fork-and-conflict-guide.md) | Upstream config, branch isolation, and 4-step Rebase conflict resolution | When setting up branches or resolving Git conflicts | 4 mins |
 | ✍️ [**DCO, CLA & Signing Guide (`dco-cla-and-signing.md`)**](references/dco-cla-and-signing.md) | DCO `-s` sign-offs, batch retroactive signing, and SSH Commit keys | When committing code or blocked by DCO checks | 4 mins |
 | 🛡️ [**Anti-AI Slop Quality Guide (`ai-slop-guide.md`)**](references/ai-slop-guide.md) | 2026 3-point self-proof (Comprehension/Testing/Scope) and PR writing | When drafting PRs and performing pre-commit checks | 4 mins |
@@ -192,9 +193,13 @@ github-oss-contribute/
 ├── assets/                           # Media assets and social previews
 ├── examples/                         # Real-world examples
 ├── scripts/
+│   ├── validate_contribution.py      # Local contribution branch, DCO & privacy validator
 │   ├── validate-skill.mjs            # Validation script
 │   └── selftest.py                   # Automated regression test runner
-└── references/                       # 10 In-depth contributor guides
+├── tests/
+│   └── test_skill.py                 # Pytest automated test suite entry
+└── references/                       # 11 In-depth contributor guides
+    ├── github-oss-contribute-pitfalls.md # Open-source contribution killer pitfalls & baselines
     ├── git-fork-and-conflict-guide.md # Upstream config & Rebase conflict resolution
     ├── dco-cla-and-signing.md        # DCO sign-offs & SSH Commit signing
     ├── ai-slop-guide.md              # 2026 3-Point proof & anti-AI slop gates
