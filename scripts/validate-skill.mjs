@@ -3,7 +3,10 @@ import path from 'node:path';
 
 const root = process.cwd();
 const expectedName = 'github-oss-contribute';
-const expectedVersion = '2.0.0';
+const manifestPath = path.join(root, 'manifest.json');
+const expectedVersion = fs.existsSync(manifestPath)
+  ? JSON.parse(fs.readFileSync(manifestPath, 'utf8')).version
+  : '2.1.0';
 const required = [
   'SKILL.md', 'README.md', 'LICENSE', 'CHANGELOG.md', 'CONTRIBUTING.md',
   'CODE_OF_CONDUCT.md', 'SECURITY.md', 'CONTRIBUTORS.md',
