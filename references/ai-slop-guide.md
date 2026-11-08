@@ -4,16 +4,6 @@
 
 ---
 
-## 目录
-
-- [一、为什么维护者警惕 AI Slop](#一为什么维护者警惕-ai-slop)
-- [二、AI Slop 的典型反模式](#二ai-slop-的典型反模式)
-- [三、2026 贡献者 Human-in-the-Loop 三大自证铁律](#2026-ai-辅助贡献自检与自证准则-human-in-the-loop)
-- [四、高质量 PR 描述编写模板](#四高质量-pr-描述编写模板)
-- [五、AI 辅助贡献的合规披露与 Git Trailers](#五ai-辅助贡献的合规披露与-git-trailers)
-
----
-
 The problem is not the use of AI itself. The problem is sending maintainers work that lacks context, understanding, verification or ownership. This guide defines an evidence-based quality gate without inventing a universal “AI policy.”
 
 ## Target-repository policy comes first
@@ -112,18 +102,23 @@ Communication
 
 ---
 
-## 2026 AI 辅助贡献自检与自证准则 (Human-in-the-Loop)
+## 中文速查：提 PR 前三问
 
-在充分借助 AI 助手加速开发的同时，贡献者必须满足以下三大自检铁律，避免被维护者判定为无意义的 AI Slop：
+1. **讲得清吗**：每一处改动，用户本人能说清为什么这样改、为什么不用别的办法。
+2. **验证过吗**：项目有测试就补回归测试并在本地跑通；没有测试就给出可复现的前后对比（命令和输出）。没跑过的不要写“已测试”。
+3. **够小吗**：只改 Issue 需要的部分，不顺手重命名、格式化无关代码或加依赖。
 
-### 1. 原理自证（Comprehension Proof）
-- **核心标准**：提交的每一行代码、每一个参数、每一个正则，贡献者本人必须能够用人类自然语言清晰解释其工作原理与选型理由；
-- **自问自答**：“如果维护者问我为什么这里要用这套逻辑而不是另一种，我能给出有说服力的回答吗？”
+## 各项目 AI 政策差异（2026-11-08 核对）
 
-### 2. 测试自证（Testing Proof）
-- **核心标准**：任何功能改动或 Bug 修复，必须附带真实的本地单元测试或复现脚本；
-- **自问自答**：“我是否在本地终端完整跑通了新增测试，并断言其能够成功拦截历史 Bug？”
+政策差别很大，一定读目标仓库自己的规定。几个代表：
 
-### 3. 最小范围（Minimal Scope）
-- **核心标准**：严格聚焦目标 Issue，绝不在同一个 PR 中顺手做大范围的代码重命名、排版微调或添加无关依赖；
-- **自问自答**：“这个 PR 的 Diff 是否做到了最小可行修改？”
+| 项目 | 立场 | 要点 | 来源 |
+|---|---|---|---|
+| QEMU、Zig、Gentoo、NetBSD | 禁止或基本禁止 | 不接受 AI 生成的贡献（NetBSD 需核心团队事先批准） | [QEMU](https://www.qemu.org/docs/master/devel/code-provenance.html)、[Zig](https://ziglang.org/code-of-conduct/)、[Gentoo](https://wiki.gentoo.org/wiki/Project:Council/AI_policy)、[NetBSD](https://www.netbsd.org/developers/commit-guidelines.html) |
+| Linux 内核 | 有条件允许 | 需透明说明；AI 不得添加 `Signed-off-by`，DCO 只能由人签 | [coding-assistants](https://docs.kernel.org/process/coding-assistants.html) |
+| curl | 有条件允许 | 按常规标准审 AI 辅助代码；提交虚假 AI 安全报告者直接封禁 | [CONTRIBUTE.md](https://github.com/curl/curl/blob/master/docs/CONTRIBUTE.md) |
+| Homebrew | 有条件允许 | 必须披露；Review 必须本人回答、不能用 AI 写回复；非维护者同时最多 1 个 AI 辅助 PR；不得把 AI 列为作者或在 trailer 里署名 | [How to open a PR](https://docs.brew.sh/How-To-Open-a-Homebrew-Pull-Request) |
+| Ghostty | 有条件允许 | 必须披露；低质量 AI 贡献者会被公开列入名单 | [AI_POLICY.md](https://github.com/ghostty-org/ghostty/blob/main/AI_POLICY.md) |
+| Debian | 中立 | 2026-08-30 投票结果：既不支持也不禁止 | [公告](https://lists.debian.org/debian-devel-announce/2026/08/msg00005.html) |
+
+`Assisted-by` 等 trailer 的写法各项目相反（有的要求、有的禁止），按目标仓库规定，没有规定就在 PR 描述里用一句话说明。

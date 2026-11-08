@@ -1,17 +1,31 @@
 #!/usr/bin/env python3
-"""Local contribution branch hygiene, DCO signoff, and security validation tool for github-oss-contribute.
+"""validate_contribution.py - 提 PR 前的本地贡献分支预检
 
-Usage:
-  python scripts/validate_contribution.py [target_dir] [--json] [--quick] [--read-only]
+在「你的贡献仓库」里运行（不是本技能包目录）。只读：只调用 git rev-parse /
+git log / git diff 等查询命令，不改任何文件、配置或远端。零依赖（Python 3.10+ 标准库）。
 
-Features:
-  - Validates feature branch isolation (ensures PR is not being opened from main/master)
-  - Validates DCO (Signed-off-by) sign-off on recent commits
-  - Scans changed files for hardcoded secrets, API keys, and personal paths
-  - Checks Conventional Commits syntax on the HEAD commit message
-  - Machine-readable JSON structured export (--json) and fast sampling (--quick)
-  - Pure Python standard library, zero external dependencies, 100% read-only
+只检查「本分支相对上游基线新增的内容」，不扫描整个上游仓库，避免误报：
+  1. 分支：不在 main/master、不在 detached HEAD
+  2. 基线：能找到上游基线（upstream/HEAD、origin/HEAD、upstream/main ……）
+  3. DCO：基线之后每个提交都有 Signed-off-by，且其中一行邮箱与作者邮箱一致
+  4. 提交标题：符合 Conventional Commits 1.0.0 格式（仅提示，很多项目不要求）
+  5. 新增行（+ 行）中无凭据样式字符串、无个人绝对路径
+
+结果：凭据 / 个人路径 = error（FAIL）；其余 = warning（不阻断，请对照目标仓库的 CONTRIBUTING）。
+
+用法：
+  python /path/to/github-oss-contribute/scripts/validate_contribution.py [repo_dir]
+      [--base upstream/main] [--quick] [--json]
+
+  --base   指定上游基线（默认按 upstream/HEAD、origin/HEAD、upstream/main、
+           upstream/master、origin/main、origin/master 依次查找）
+  --quick  只查分支与提交信息，跳过新增内容扫描
+  --json   机读输出
+退出码：0 = PASS，1 = FAIL，2 = 不是 git 仓库或参数错误
 """
+
+from __future__ import annotations
+
 import argparse
 import json
 import re
@@ -19,186 +33,159 @@ import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-
-# 1. Credentials & Secrets patterns
-SECRET_PATTERNS = [
-    (re.compile(r"sk-[A-Za-z0-9-_]{20,}"), "OpenAI API Key pattern"),
-    (re.compile(r"sk-ant-[A-Za-z0-9-_]{20,}"), "Anthropic API Key pattern"),
-    (re.compile(r"ghp_[A-Za-z0-9]{36}"), "GitHub Classic PAT pattern"),
-    (re.compile(r"github_pat_[A-Za-z0-9_]{82}"), "GitHub Fine-Grained PAT pattern"),
-    (re.compile(r"-----BEGIN (?:RSA|OPENSSH|EC|DSA) PRIVATE KEY-----"), "SSH Private Key"),
-]
-
-# 2. Local personal path patterns (skill-doctor: allow)
-PERSONAL_PATH_PATTERNS = [
-    (re.compile(r"[A-Za-z]:\\Users\\[a-zA-Z0-9_-]+[\\/]"), "Windows personal user path"),  # skill-doctor: allow
-    (re.compile(r"/home/[a-zA-Z0-9_-]+/"), "Linux personal user path"),
-    (re.compile(r"/Users/[a-zA-Z0-9_-]+/"), "macOS personal user path"),
-]
-
-# Conventional commit types
-CONVENTIONAL_COMMIT_RE = re.compile(
-    r"^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-zA-Z0-9_-]+\))?!?: .+$"
+BASE_CANDIDATES = (
+    "upstream/HEAD",
+    "origin/HEAD",
+    "upstream/main",
+    "upstream/master",
+    "origin/main",
+    "origin/master",
 )
 
-EXCLUDE_DIRS = {".git", "node_modules", "__pycache__", ".pytest_cache", ".doctor"}
-EXCLUDE_EXTS = {".png", ".jpg", ".webp", ".mp4", ".zip", ".tar.gz", ".pyc", ".ico"}
-EXCLUDE_FILES = {
-    "validate_contribution.py",
-    "selftest.py",
-    "test_skill.py",
-    "audit.py",
-    "github-oss-contribute-pitfalls.md",
-    "security-guide.md",
-    "ai-slop-guide.md",
-}
+# 拼接写法，避免本文件被凭据扫描器误报
+SECRET_PATTERNS = (
+    (re.compile(r"\b" + "gh" + r"[pousr]_[A-Za-z0-9]{36,}"), "GitHub token（ghp_/gho_/ghu_/ghs_/ghr_）"),
+    (re.compile(r"\b" + "github" + r"_pat_[A-Za-z0-9_]{22,}"), "GitHub fine-grained PAT"),
+    (re.compile(r"\b" + "sk-" + r"ant-[A-Za-z0-9_-]{20,}"), "Anthropic API key"),
+    (re.compile(r"\b" + "sk-" + r"(?:proj-)?[A-Za-z0-9_-]{20,}"), "OpenAI 风格 API key"),
+    (re.compile(r"\b" + "AK" + r"IA[0-9A-Z]{16}"), "AWS access key ID"),
+    (re.compile(r"\b" + "xox" + r"[baprs]-[A-Za-z0-9-]{10,}"), "Slack token"),
+    (re.compile("-----BEGIN " + r"(?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----"), "私钥"),
+)
+PERSONAL_PATH_PATTERNS = (
+    (re.compile(r"[A-Za-z]:\\" + r"Users\\[^\\\s\"']+\\"), "Windows 个人目录"),
+    (re.compile(r"/" + r"home/[A-Za-z0-9._-]+/"), "Linux 个人目录"),
+    (re.compile(r"/" + r"Users/[A-Za-z0-9._-]+/"), "macOS 个人目录"),
+)
+CONVENTIONAL_RE = re.compile(r"^[a-z]+(\([^()\r\n]+\))?!?: \S")
+SIGNOFF_RE = re.compile(r"^Signed-off-by:\s*.+<([^>]+)>\s*$", re.M | re.I)
+BINARY_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".pdf", ".zip", ".gz", ".mp4"}
 
 
-def check_git_branch(target_dir: Path) -> list[str]:
-    """Check if repository is on a clean feature branch instead of main."""
-    issues = []
-    try:
-        proc = subprocess.run(
-            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-            cwd=target_dir,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        if proc.returncode == 0:
-            branch = proc.stdout.strip()
-            # If in detached HEAD or main/master, warn contributor
-            if branch in ("main", "master"):
-                issues.append(f"当前处于主干分支 '{branch}'。提 PR 前强烈建议创建独立特性分支 (如 feat/xxx 或 fix/xxx)")
-    except Exception:  # skill-doctor: allow
-        pass
-    return issues
+def git(repo: Path, *args: str) -> tuple[int, str]:
+    proc = subprocess.run(["git", *args], cwd=repo, capture_output=True, text=True,
+                          encoding="utf-8", errors="replace", check=False)
+    return proc.returncode, proc.stdout
 
 
-def check_recent_dco(target_dir: Path) -> list[str]:
-    """Check if HEAD commit contains a Signed-off-by trailer."""
-    issues = []
-    try:
-        proc = subprocess.run(
-            ["git", "log", "-1", "--format=%H|%an|%ae|%B"],
-            cwd=target_dir,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        if proc.returncode == 0 and proc.stdout.strip():
-            parts = proc.stdout.split("|", 3)
-            if len(parts) >= 4:
-                commit_sha, author_name, author_email, body = parts[0][:8], parts[1], parts[2], parts[3]
-                if "Signed-off-by:" not in body:
-                    issues.append(f"最新提交 {commit_sha} 缺失 DCO 签名 (需执行 git commit -s --amend 补签)")
-    except Exception:  # skill-doctor: allow
-        pass
-    return issues
+def find_base(repo: Path, explicit: str | None) -> str | None:
+    for ref in ([explicit] if explicit else BASE_CANDIDATES):
+        code, _ = git(repo, "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}")
+        if code == 0:
+            return ref
+    return None
 
 
-def validate_contribution(target_dir: Path, quick: bool = False) -> dict:
-    """Validate contribution readiness, privacy hygiene, and branch health."""
+def check(repo: Path, base_ref: str | None = None, quick: bool = False) -> dict:
     errors: list[str] = []
     warnings: list[str] = []
     passed: list[str] = []
 
-    # 1. Branch hygiene check
-    branch_issues = check_git_branch(target_dir)
-    for bi in branch_issues:
-        warnings.append(f"WARN [Branch]: {bi}")
-    if not branch_issues:
-        passed.append("Branch check passed: not on default branch or git clean")
+    code, out = git(repo, "rev-parse", "--is-inside-work-tree")
+    if code != 0 or out.strip() != "true":
+        return {"status": "ERROR", "target": str(repo), "errors": ["不是 git 工作区"],
+                "warnings": [], "passed": []}
 
-    # 2. DCO check
-    dco_issues = check_recent_dco(target_dir)
-    for di in dco_issues:
-        warnings.append(f"WARN [DCO]: {di}")
-    if not dco_issues:
-        passed.append("DCO check: commit signed-off or branch ready")
+    # 1. 分支
+    _, branch = git(repo, "rev-parse", "--abbrev-ref", "HEAD")
+    branch = branch.strip()
+    if branch == "HEAD":
+        warnings.append("[分支] 处于 detached HEAD，先 git switch -c fix/xxx 建特性分支")
+    elif branch in ("main", "master"):
+        warnings.append(f"[分支] 当前在 {branch}，请从特性分支（如 fix/xxx）提 PR")
+    else:
+        passed.append(f"[分支] {branch}")
 
-    # If quick mode, return early
-    if quick:
-        return {
-            "status": "PASS" if not errors else "FAIL",
-            "target": str(target_dir),
-            "mode": "quick",
-            "errors": errors,
-            "warnings": warnings,
-            "passed": passed,
-        }
+    # 2. 基线
+    base = find_base(repo, base_ref)
+    if not base:
+        warnings.append("[基线] 找不到上游基线：先 git remote add upstream <上游地址> && git fetch upstream，"
+                        "或用 --base 指定；以下只检查 HEAD 一个提交")
+        rev_range = ["-1", "HEAD"]
+        diff_range = ["HEAD~1", "HEAD"] if git(repo, "rev-parse", "--verify", "--quiet", "HEAD~1")[0] == 0 else None
+    else:
+        _, mb = git(repo, "merge-base", base, "HEAD")
+        mb = mb.strip()
+        rev_range = [f"{mb}..HEAD"]
+        diff_range = [mb, "HEAD"]
+        passed.append(f"[基线] {base}")
 
-    # 3. Scan files for credentials & personal paths
-    for p in target_dir.rglob("*"):
-        if any(part in EXCLUDE_DIRS for part in p.parts):
-            continue
-        if p.suffix.lower() in EXCLUDE_EXTS:
-            continue
-        if not p.is_file():
-            continue
-        if p.name in EXCLUDE_FILES:
-            continue
+    # 3 + 4. 逐个提交
+    sep = "\x1e"
+    _, log = git(repo, "log", "--no-merges", f"--format=%h%x1f%ae%x1f%s%x1f%B{sep}", *rev_range)
+    commits = [c.strip("\n") for c in log.split(sep) if c.strip()]
+    if not commits:
+        warnings.append("[提交] 相对基线没有新提交")
+    for raw in commits:
+        sha, email, subject, body = (raw.split("\x1f", 3) + ["", "", ""])[:4]
+        signoffs = [e.lower() for e in SIGNOFF_RE.findall(body)]
+        if not signoffs:
+            warnings.append(f"[DCO] {sha} 缺 Signed-off-by（若项目要求 DCO：git commit --amend -s，"
+                            "多个提交用 git rebase --signoff <基线>）")
+        elif email.lower() not in signoffs:
+            warnings.append(f"[DCO] {sha} 的 Signed-off-by 邮箱与作者邮箱 {email} 不一致")
+        if not CONVENTIONAL_RE.match(subject):
+            warnings.append(f"[提交标题] {sha} 「{subject}」不是 Conventional Commits 格式（仅当项目要求时需要改）")
+    if commits and not any(w.startswith(("[DCO]", "[提交标题]")) for w in warnings):
+        passed.append(f"[提交] {len(commits)} 个提交均已签署且标题规范")
 
-        try:
-            content = p.read_text(encoding="utf-8", errors="ignore")
-        except Exception as e:  # skill-doctor: allow
-            warnings.append(f"WARN: Could not read {p.relative_to(target_dir)}: {e}")
-            continue
-
-        for pat, desc in SECRET_PATTERNS:
-            if pat.search(content):
-                errors.append(f"Secret detected in {p.relative_to(target_dir)}: {desc}")
-
-        for pat, desc in PERSONAL_PATH_PATTERNS:
-            if pat.search(content):
-                errors.append(f"Personal path detected in {p.relative_to(target_dir)}: {desc}")
+    # 5. 新增内容扫描
+    if not quick and diff_range:
+        _, diff = git(repo, "diff", "--no-color", "--unified=0", "--no-ext-diff", *diff_range)
+        current = ""
+        hits = 0
+        for line in diff.splitlines():
+            if line.startswith("+++ "):
+                current = line[6:] if line.startswith("+++ b/") else line[4:]
+                continue
+            if not line.startswith("+") or Path(current).suffix.lower() in BINARY_SUFFIXES:
+                continue
+            for pattern, label in SECRET_PATTERNS + PERSONAL_PATH_PATTERNS:
+                if pattern.search(line):
+                    hits += 1
+                    errors.append(f"[新增内容] {current}: {label}")
+                    break
+        if not hits:
+            passed.append("[新增内容] 未发现凭据或个人路径")
 
     return {
-        "status": "PASS" if not errors else "FAIL",
-        "target": str(target_dir),
-        "mode": "full",
+        "status": "FAIL" if errors else "PASS",
+        "target": str(repo),
+        "branch": branch,
+        "base": base,
+        "mode": "quick" if quick else "full",
         "errors": errors,
         "warnings": warnings,
         "passed": passed,
     }
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description="validate_contribution: 本地贡献分支、DCO 与隐私安全校验工具")
-    parser.add_argument("target", nargs="?", default=".", help="目标仓库路径 (默认当前目录)")
-    parser.add_argument("--json", "-Json", action="store_true", help="以结构化机读 JSON 格式输出结果")
-    parser.add_argument("--quick", "-Quick", action="store_true", help="执行快速采样审计")
-    parser.add_argument("--read-only", action="store_true", help="显式声明纯只读模式运行")
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="提 PR 前的本地贡献分支预检（只读）")
+    parser.add_argument("target", nargs="?", default=".", help="贡献仓库路径（默认当前目录）")
+    parser.add_argument("--base", help="上游基线，如 upstream/main")
+    parser.add_argument("--quick", action="store_true", help="跳过新增内容扫描")
+    parser.add_argument("--json", action="store_true", help="JSON 输出")
+    parser.add_argument("--read-only", action="store_true", help=argparse.SUPPRESS)  # 旧参数，始终只读
+    args = parser.parse_args(argv)
 
-    args = parser.parse_args()
-    target_path = Path(args.target).resolve()
-
-    if not target_path.is_dir():
-        print(f"Error: 目标路径不是有效目录: {target_path}", file=sys.stderr)
-        return 1
-
-    result = validate_contribution(target_path, quick=args.quick)
+    repo = Path(args.target).resolve()
+    if not repo.is_dir():
+        print(f"不是目录: {repo}", file=sys.stderr)
+        return 2
+    report = check(repo, args.base, args.quick)
 
     if args.json:
-        print(json.dumps(result, ensure_ascii=False, indent=2))
-        return 0 if result["status"] == "PASS" else 1
-
-    print(f"Validating contribution at: {target_path} (Mode: {result['mode']})")
-    if result["passed"]:
-        for p in result["passed"]:
-            print(f" [+] {p}")
-    if result["warnings"]:
-        for w in result["warnings"]:
-            print(f" [!] {w}", file=sys.stderr)
-    if result["errors"]:
-        print(f"\nFAIL: Found {len(result['errors'])} error(s):", file=sys.stderr)
-        for e in result["errors"]:
-            print(f"  - {e}", file=sys.stderr)
-        return 1
-
-    print("\nPASS: Contribution validation successful with zero errors.")
-    return 0
+        print(json.dumps(report, ensure_ascii=False, indent=2))
+    else:
+        print(f"{repo}（{report.get('mode', '-')}）: {report['status']}")
+        for item in report["passed"]:
+            print(f"  [+] {item}")
+        for item in report["warnings"]:
+            print(f"  [!] {item}")
+        for item in report["errors"]:
+            print(f"  [x] {item}")
+    return {"PASS": 0, "FAIL": 1}.get(report["status"], 2)
 
 
 if __name__ == "__main__":

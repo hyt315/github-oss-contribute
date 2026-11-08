@@ -12,11 +12,11 @@ Thank you for considering contributing! This document outlines the process.
 ## Development Process
 
 1. **Fork** the repository
-2. **Create a branch**: `git checkout -b feature/your-feature`
+2. **Create a branch**: `git switch -c feat/your-feature`
 3. **Make changes**: Follow existing code style and conventions
-4. **Validate**: Run `node scripts/validate-skill.mjs`
+4. **Validate**: Run `python scripts/validate.py` and `python -m unittest discover tests` (Python 3.10+, no dependencies)
 5. **Commit**: Use [Conventional Commits](https://www.conventionalcommits.org/) format
-6. **Push**: `git push origin feature/your-feature`
+6. **Push**: `git push origin feat/your-feature`
 7. **Open a Pull Request**: Fill in the PR template completely
 
 ## PR Guidelines

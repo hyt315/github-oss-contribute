@@ -17,7 +17,7 @@ GitHub OSS Contribute must never:
 - publish a security fix before the target project's private disclosure process allows it;
 - push, comment, fork or create a PR without authorization for that exact external action.
 
-If a credential is exposed, stop the affected workflow, revoke/rotate it, inspect Git history and coordinate any history rewrite with all affected collaborators.
+If a credential is exposed, stop the affected workflow and revoke/rotate it first. Any history rewrite must be coordinated with the repository owner; see [references/security-guide.md](references/security-guide.md).
 
 ## Supported versions
 

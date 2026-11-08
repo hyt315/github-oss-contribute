@@ -16,7 +16,7 @@
 ## 一、CI 失败自排查四步流程
 
 ```
-Step 1: 定位失败 Job ──> 进入 PR 的 Checks 标签页，点击红色的 Job 查看原始日志
+Step 1: 定位失败 Job ──> PR 的 Checks 标签页点红色 Job，或 gh run view <run-id> --log-failed
     ↓
 Step 2: 抓取核心报错 ──> 展开标红的 Run 步骤，搜索 FAIL / ERROR / AssertionError / Error:
     ↓
@@ -35,9 +35,13 @@ Step 4: 修复并推送 ────> 修复代码，自测通过后追加 commi
 | **单元测试断言失败** | `AssertionError: expected X but got Y` / `Test failed` | 根据报错行号定位，本地运行单测命令 `pytest tests/test_xxx.py` 进行调试 |
 | **类型检查失败** | `tsc error TS2322` / `mypy: Incompatible types` | 修正缺失的类型注解或未处理的 `null` / `None` 分支 |
 | **依赖安装 / 版本不匹配** | `ModuleNotFoundError` / `package not found` | 检查是否引入了新依赖但忘记更新 `package.json` / `requirements.txt` / `Cargo.toml` |
-| **跨平台环境失败 (Linux/macOS/Windows)** | `: command not found` / `path delimiter error` | 检查是否有 Windows CRLF 换行或反斜杠硬编码路径，统一使用标准库 Path 抽象 |
+| **跨平台环境失败 (Linux/macOS/Windows)** | `
+: command not found` / `path delimiter error` | 检查是否有 Windows CRLF 换行或反斜杠硬编码路径，统一使用标准库 Path 抽象 |
 
 ---
+
+| **CI 一直不跑（显示等待批准）** | PR 上出现 “Awaiting approval” | 维护者需点 “Approve workflows to run”。首次贡献者默认需要批准，别反复推送催促 |
+| **需要 Secrets 的 Job 失败** | 凭据为空、`401`、发布或部署步骤失败 | Fork 的 PR 拿不到仓库 Secrets，`GITHUB_TOKEN` 也只读。在 PR 里说明该 Job 依赖维护者凭据，不要试图绕过 |
 
 ## 三、Flaky Test（偶发性挂掉）处理策略
 
@@ -53,9 +57,10 @@ Step 4: 修复并推送 ────> 修复代码，自测通过后追加 commi
 
 修复完成后，直接推送即可自动触发新的 CI 构建：
 ```bash
-# 暂存并提交修复
-git add .
-git commit -m "fix(ci): format code and fix assertion in parser test"
+# 只暂存相关文件，先核对清单
+git add path/to/fixed_file
+git diff --cached --name-status
+git commit -s -m "fix(ci): format code and fix assertion in parser test"
 
 # 推送到你的分支（PR 会自动刷新并重新跑 CI）
 git push origin feat/my-branch

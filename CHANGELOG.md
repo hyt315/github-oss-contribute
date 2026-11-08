@@ -2,6 +2,33 @@
 
 本项目采用 [Conventional Commits](https://www.conventionalcommits.org/) 格式记录变更。
 
+## [2.2.0] - 2026-11-08
+
+### Changed
+- `SKILL.md` 改为“阶段路由表”（阶段 → 先读哪份手册 → 产出 → 需批准的写操作），删除与路由表重复的 Reference Files 列表和逐阶段段落；阶段 1 侦察命令内联。
+- `scripts/validate_contribution.py` 重写：只检查本分支相对上游基线（自动识别 `upstream/HEAD`、`origin/HEAD` 等，或 `--base` 指定）新增的提交与新增行，不再扫描整个仓库；DCO 逐个提交检查并核对签署邮箱与作者邮箱；提交标题按 Conventional Commits 提示；凭据规则补全 `gho_/ghu_/ghs_/ghr_`、AWS、Slack 并加词边界防误报；处理 detached HEAD；非 git 目录退出码 2。
+- 精简重复内容：`commit-conventions.md` 的 DCO/签名部分改为链接；`communication-etiquette.md` 两套重复模板合并为一套；`ai-slop-guide.md` 删除失效目录、中文段与英文正文统一口径；避坑库重写为 9 条“症状 → 原因 → 怎么做”，删除与脚本重复的探针代码。
+- CI 改用 Python 3.12 + `actions/checkout@v7.0.1` + `actions/setup-python@v7.1.0`，不再依赖 Node（Node 20 已于 2026-04-30 停止维护）。
+
+### Removed
+- `scripts/selftest.py`、`scripts/validate-skill.mjs`、`tests/test_skill.py`，由 `scripts/validate.py`（唯一校验入口）和 `tests/` 下两组正向/负向测试取代。
+- README 中指向不存在仓库 `skill-doctor` 的链接与命令。
+
+### Fixed（对照 2026-11-08 官方文档核对）
+- Fine-grained PAT 不能在用户非成员的公开仓库评论或开 PR，只能推到自己的 Fork；`gh` 即使只读也需要登录。
+- Kubernetes 使用 CNCF CLA（EasyCLA，`/easycla` 重查），不是 DCO；Google 使用自有 CLA 系统；`@cla-bot check` 说法删除。
+- DCO 检查比对的是提交作者邮箱，而非 GitHub 账号邮箱；多提交补签改用 `git rebase --signoff`（原 `reword` 步骤无效）。
+- Conventional Commits：`perf` 不默认 patch；补充 `!` / `BREAKING CHANGE` → major。
+- SSH 签名需 Git 2.34+；Verified 的例外（rebase/squash 合并、vigilant mode、本地 allowedSignersFile）；GPG 与 SSH 配置互相覆盖的提示。
+- 冲突标记示例与 rebase 时 ours/theirs 互换说明；补充完成后的 rebase 用 reflog 恢复。
+- Git 报错速查：non-fast-forward 来自 origin 而非 upstream；删除重复且相互矛盾的 unrelated histories 条目；`git checkout -- <file>` 改为带不可恢复警告的 `git restore`。
+- 各项目 AI 政策并不统一（QEMU/Zig/Gentoo/NetBSD 禁止，Linux 内核/curl/Homebrew/Ghostty 有条件允许，Debian 中立），删除“数百个项目全面禁止”的说法。
+- `Fixes #` 在非默认分支被忽略、仓库可关闭自动关闭 Issue；Fork PR 等待批准的按钮名；泄露凭据时贡献者无法清除上游 `refs/pull/*`，先吊销。
+- 新增本地 MCP 默认浏览器登录、`--lockdown-mode`、`get_job_logs`、`code_security`/`secret_protection` 工具集名称。
+- Hacktoberfest 2026 起不再统计 PR；“陌生仓库批量改错字”列为垃圾 PR 模式。
+- README：示例锚点失效、“端到端可复核”“高通过率”等无法证实的说法、中英文全局 Git 配置描述不一致、重复分隔线。
+- CHANGELOG 中 1.2.0 条目标题损坏，已修复并补上 1.2.1。
+
 ## [2.1.0] - 2026-09-06
 
 ### Added
@@ -34,7 +61,13 @@
 - **全场景沟通模板库扩充**：扩充 `references/communication-etiquette.md`，新增 Issue 认领、Review 探讨与温和催单文案；
 - **门面与文档全面升级**：中英双语 README 达到 PREP 黄金规范标准。
 
-] - 2026-08-21
+## [1.2.1] - 2026-08-22
+
+### Changed
+
+- Reference Files 表措辞修正（破折号空格），无功能变化。
+
+## [1.2.0] - 2026-08-21
 
 ### Added
 

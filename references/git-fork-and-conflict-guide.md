@@ -41,9 +41,9 @@ git remote -v
   git fetch upstream main
   
   # 创建并切换到新分支
-  git checkout -b feat/add-new-parser upstream/main
+  git switch -c feat/add-new-parser upstream/main
   # 或者
-  git checkout -b fix/issue-456 upstream/main
+  git switch -c fix/issue-456 upstream/main
   ```
 
 ---
@@ -60,7 +60,7 @@ git fetch upstream
 git checkout feat/my-feature
 git rebase upstream/main
 
-# 3. 推送到你的个人 Fork（若之前推过，需 --force-with-lease 保护性强推）
+# 3. 推送到你的个人 Fork（rebase 改写了历史，需 --force-with-lease；只对自己的特性分支这样做）
 git push --force-with-lease origin feat/my-feature
 ```
 
@@ -79,12 +79,13 @@ git status
 ### 第二步：编辑冲突文件消解标记
 打开冲突文件，查找 Git 冲突分隔符：
 ```text
-<<<<<<< HEAD (上游已合并的代码)
-current_upstream_code()
+<<<<<<< HEAD
+current_upstream_code()        # 上游的版本（rebase 时 HEAD 是上游）
 =======
-my_new_contributed_code()
->>>>>>> feat/my-feature (你提交的代码)
+my_new_contributed_code()      # 你正在重放的那个提交
+>>>>>>> a1b2c3d (feat: add parser)
 ```
+- 注意：rebase 时 `ours` 指上游、`theirs` 指你的提交，与 merge 时相反。用 `git checkout --ours/--theirs` 前先想清楚。
 - 根据业务逻辑，保留正确的代码组合，删除 `<<<<<<<`、`=======`、`>>>>>>>` 冲突标记行。
 
 ### 第三步：标记解决并继续变基
@@ -109,6 +110,15 @@ GitHub 上的 PR 会自动更新，且不再提示冲突！
 
 如果冲突修改混乱想完全推倒重来：
 ```bash
-# 立即中止变基，恢复到执行 rebase 前的干净状态
+# 变基进行中：中止，回到 rebase 前
 git rebase --abort
 ```
+
+变基已经完成但结果不对：
+
+```bash
+git reflog                     # 找到 rebase 前的位置
+git reset --hard ORIG_HEAD     # 或 git reset --hard <分支>@{1}；会丢弃未提交的改动
+```
+
+提示：`git config --global rerere.enabled true` 可以记住你解决过的冲突，下次 rebase 遇到相同冲突自动套用。

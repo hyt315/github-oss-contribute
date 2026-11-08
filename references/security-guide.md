@@ -18,7 +18,7 @@ git diff --cached --check
 git diff --cached
 ```
 
-Use the repository's secret scanner when one exists. Pattern searches are only a supplement and can produce false positives; review matches without copying secret values into logs or chat.
+GitHub push protection is on by default for public repositories and blocks many known token formats at push time, but it does not catch everything. Use the repository's secret scanner when one exists, and `scripts/validate_contribution.py` before pushing. Pattern searches are only a supplement and can produce false positives; review matches without copying secret values into logs or chat.
 
 ## If a credential is exposed
 
@@ -26,7 +26,7 @@ Use the repository's secret scanner when one exists. Pattern searches are only a
 2. Revoke or rotate the credential immediately. Deleting the file is not sufficient.
 3. Determine where it appeared: working tree, commit, PR diff, Actions log, artifact, release or chat.
 4. Notify the target repository through its private security channel.
-5. Coordinate history rewriting with the repository owner and collaborators.
+5. Coordinate history rewriting with the repository owner. A contributor cannot remove commits already referenced by the upstream PR (`refs/pull/*`); that cleanup needs the owner and GitHub Support. Rotating the credential is the part you control.
 6. Invalidate caches, artifacts or releases that still contain the value.
 7. Verify the cleaned history before resuming work.
 
@@ -35,7 +35,7 @@ Do not run a generic `git filter-repo` or force-push recipe without resolving th
 ## Security vulnerabilities in the target project
 
 - Read the target repository's `SECURITY.md`.
-- Use Private Vulnerability Reporting or the specified private channel.
+- Use Private Vulnerability Reporting (Security tab → Report a vulnerability) only if the repository has enabled it; otherwise use the private channel in `SECURITY.md`. If neither exists, ask the maintainer for a private contact without revealing details.
 - Do not first disclose the issue through a public Issue or ordinary PR.
 - Do not publish exploit code, affected versions or a fix timeline without maintainer approval.
 - Keep the scope limited to the authorized assessment; do not probe third-party systems.

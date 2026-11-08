@@ -20,12 +20,14 @@ Closes #123
 | `docs` | 文档变更 | — |
 | `style` | 代码格式（不影响功能） | — |
 | `refactor` | 重构 | — |
-| `perf` | 性能优化 | patch |
+| `perf` | 性能优化 | — |
 | `test` | 测试相关 | — |
 | `build` | 构建系统 | — |
 | `ci` | CI 配置 | — |
 | `chore` | 杂项 | — |
 | `revert` | 撤销之前的 commit | — |
+
+规范本身只规定 `feat` → minor、`fix` → patch；类型后加 `!`（如 `feat!:`）或正文写 `BREAKING CHANGE:` 页脚 → major。其他类型没有默认版本影响，由项目自己的发版工具配置决定。来源：[Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/)。
 
 ### 示例
 
@@ -38,46 +40,11 @@ the password field was submitted empty.
 Closes #123
 ```
 
-## 方式二：DCO Signed-off-by
+## DCO 签名与签名提交
 
-部分项目要求（如 Linux 内核、Spring）。如果仓库 CONTRIBUTING.md 要求 DCO：
+项目要求 DCO（`git commit -s`）或签名提交（Verified）时，见 [dco-cla-and-signing.md](dco-cla-and-signing.md)。
 
-```bash
-# 单次 commit 签名
-git commit -s -m "fix: resolve login crash"
-
-# 补签名到已有 commit
-git commit --amend -s --no-edit
-
-# 批量补签名（多个 commit）
-git rebase -i HEAD~3  # 对每个 commit 执行 amend -s
-```
-
-签名的 commit 消息会自动追加：
-```
-Signed-off-by: Your Name <your@email.com>
-```
-
-> DCO 是开发者原产地声明，表示你有权提交这些代码。与 CLA 不同，DCO 不需要签署协议，只需在 commit 中加 `-s` 标志。
-
-## 方式三：GPG/SSH 签名
-
-部分项目要求验证签名：
-
-```bash
-# 配置 GPG 签名
-git config --global user.signingkey YOUR_GPG_KEY_ID
-git config --global commit.gpgsign true
-
-# 配置 SSH 签名（GitHub 支持）
-git config --global gpg.format ssh
-git config --global user.signingkey ~/.ssh/id_ed25519.pub
-
-# 签名 commit
-git commit -S -m "fix: resolve login crash"
-```
-
-## 方式四：Gitmoji（少数项目使用）
+## 另一种风格：Gitmoji（少数项目使用）
 
 ```
 :bug: fix login crash with empty password
@@ -85,4 +52,4 @@ git commit -S -m "fix: resolve login crash"
 :memo: update README installation guide
 ```
 
-> 具体使用哪种方式，以 Phase 1 侦察到的仓库规则为准。
+> 用哪种格式，以阶段 1 侦察到的目标仓库规则为准；没有规定时照着仓库最近的提交历史写。
