@@ -84,6 +84,33 @@ class ContributionTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as empty:
             self.assertEqual(vc.main([empty]), 2)
 
+    def test_upstream_preferred_over_stale_fork_origin(self) -> None:
+        # origin/HEAD 指向落后的 Fork main，上游已有新提交（未签署、含凭据样式内容）
+        self.git("update-ref", "refs/remotes/origin/main", "refs/remotes/upstream/main")
+        self.git("symbolic-ref", "refs/remotes/origin/HEAD", "refs/remotes/origin/main")
+        self.git("switch", "-q", "main")
+        (self.repo / "up.txt").write_text("k = '" + "gh" + "p_" + "C" * 36 + "'\n", encoding="utf-8")
+        self.git("add", "up.txt")
+        self.git("commit", "-q", "-m", "upstream change without signoff")
+        self.git("update-ref", "refs/remotes/upstream/main", "HEAD")
+        self.git("switch", "-q", "-C", "fix/typo", "upstream/main")
+        self.commit("a.txt", "hello\n", "fix: correct typo")
+        report = vc.check(self.repo)
+        self.assertEqual(report["base"], "upstream/main")
+        self.assertEqual(report["status"], "PASS", report)
+        self.assertEqual(report["warnings"], [])
+
+    def test_missing_explicit_base_is_error(self) -> None:
+        self.commit("a.txt", "hello\n", "fix: correct typo")
+        self.assertEqual(vc.check(self.repo, "upstream/nope")["status"], "ERROR")
+        self.assertEqual(vc.main([str(self.repo), "--base", "upstream/nope"]), 2)
+
+    def test_added_line_starting_with_plus_plus_is_scanned(self) -> None:
+        self.commit("文档/说明.md".replace("/", "_"), "ok\n++ " + "gh" + "p_" + "D" * 36 + "\n", "docs: add")
+        report = vc.check(self.repo)
+        self.assertEqual(report["status"], "FAIL", report)
+        self.assertTrue(any("文档_说明.md:2:" in e for e in report["errors"]), report["errors"])
+
     def test_word_boundary_no_false_positive(self) -> None:
         self.commit("doc.md", "disk-encryption-configuration-settings-guide\n", "docs: add guide")
         self.assertEqual(vc.check(self.repo)["status"], "PASS")

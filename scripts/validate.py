@@ -6,14 +6,16 @@
 
 检查项：
   1. 必需文件在盘
-  2. SKILL.md frontmatter（name / version / description）
-  3. 版本号四处一致：SKILL.md、manifest.json、CHANGELOG.md 最新条目、.github/repository-metadata.yml
+  2. SKILL.md frontmatter 符合 Agent Skills 规范：只用 name / description / license /
+     compatibility / metadata / allowed-tools；版本写在 metadata.version
+  3. 版本号四处一致：SKILL.md、manifest.json、CHANGELOG.md 最新条目、.github/repository-metadata.yml；
+     manifest.json 的 updated_at 等于 CHANGELOG 最新条目日期
   4. CHANGELOG 每个二级标题形如 `## [x.y.z] - YYYY-MM-DD`
   5. references/ 下每份手册都被 SKILL.md 引用（无孤儿）
   6. 所有 Markdown 本地链接可达
   7. references/ 不得写死 "SKILL.md Step N"（编号一改就失效）
   8. README 安装路径齐全，中英文 README 写明当前版本
-  9. 文本文件中无凭据样式字符串、无危险凭据指引
+  9. 文本文件中无凭据样式字符串（规则与 validate_contribution.py 共用一份）、无危险凭据指引
  10. 全部 Python 文件可被 ast 解析
 
 用法：
@@ -30,6 +32,9 @@ import pathlib
 import re
 import sys
 from urllib.parse import unquote
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from validate_contribution import SECRET_PATTERNS as _CONTRIB_SECRET_PATTERNS  # noqa: E402
 
 SKILL_NAME = "github-oss-contribute"
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -63,13 +68,10 @@ README_FRAGMENTS = (
 TEXT_SUFFIXES = {".md", ".yml", ".yaml", ".json", ".py", ".mjs", ".js", ".txt", ".svg"}
 SKIP_DIRS = {".git", "node_modules", "__pycache__"}
 
-# 拼接写法，避免本文件自身命中规则
-SECRET_PATTERNS = (
-    re.compile("gh" + r"p_[A-Za-z0-9]{20,}"),
-    re.compile("github" + r"_pat_[A-Za-z0-9_]{20,}"),
-    re.compile("-----BEGIN " + r"(?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
-    re.compile("AK" + r"IA[0-9A-Z]{16}"),
-)
+# 凭据规则只维护一份（validate_contribution.py），避免两处各改各的
+SECRET_PATTERNS = tuple(pattern for pattern, _label in _CONTRIB_SECRET_PATTERNS)
+# Agent Skills 规范允许的 frontmatter 顶层字段（https://agentskills.io/specification）
+SPEC_FIELDS = {"name", "description", "license", "compatibility", "metadata", "allowed-tools"}
 UNSAFE_PATTERNS = (
     re.compile(r"Get-ChildItem\s+-Path\s+\$HOME\s+-Recurse", re.I),
     re.compile(r"print\s*\(\s*token\s*\)", re.I),
@@ -79,7 +81,7 @@ UNSAFE_PATTERNS = (
 )
 
 LINK_RE = re.compile(r"(?<!!)\[[^\]]*\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)")
-CHANGELOG_HEADING_RE = re.compile(r"^## \[(\d+\.\d+\.\d+)\] - \d{4}-\d{2}-\d{2}\s*$")
+CHANGELOG_HEADING_RE = re.compile(r"^## \[(\d+\.\d+\.\d+)\] - (\d{4}-\d{2}-\d{2})\s*$")
 STEP_REF_RE = re.compile(r"SKILL\.md\s*Step\s*\d", re.I)
 
 
@@ -93,15 +95,25 @@ def _read(path: pathlib.Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def _frontmatter(text: str) -> dict[str, str]:
+def _frontmatter(text: str) -> dict[str, str] | None:
+    """解析 frontmatter 的顶层键；metadata 下的子键展开为 "metadata.<key>"。缺失时返回 None。"""
     match = re.match(r"^---\r?\n(.*?)\r?\n---\r?\n", text, re.S)
     if not match:
-        return {}
+        return None
     fields: dict[str, str] = {}
+    parent = ""
     for line in match.group(1).splitlines():
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
         key, sep, value = line.partition(":")
-        if sep and not line.startswith((" ", "\t")):
-            fields[key.strip()] = value.strip()
+        if not sep:
+            continue
+        indented = line.startswith((" ", "\t"))
+        if indented and parent:
+            fields[f"{parent}.{key.strip()}"] = value.strip().strip("\"'")
+        elif not indented:
+            parent = key.strip() if not value.strip() else ""
+            fields[key.strip()] = value.strip().strip("\"'")
     return fields
 
 
@@ -125,13 +137,19 @@ def validate(root: pathlib.Path = ROOT) -> dict:
 
     # 2. frontmatter
     fm = _frontmatter(skill)
-    check(bool(fm), "SKILL.md 缺少 YAML frontmatter")
+    check(fm is not None, "SKILL.md 缺少 YAML frontmatter")
+    fm = fm or {}
+    top_level = {key for key in fm if "." not in key}
+    extra = sorted(top_level - SPEC_FIELDS)
+    check(not extra, f"SKILL.md frontmatter 有 Agent Skills 规范外的顶层字段 {extra}（版本请写在 metadata.version）")
     check(fm.get("name") == SKILL_NAME, f"SKILL.md name 应为 {SKILL_NAME}，实际为 {fm.get('name')!r}")
-    check(bool(fm.get("description")), "SKILL.md 缺少 description")
-    version = fm.get("version", "")
-    check(bool(re.fullmatch(r"\d+\.\d+\.\d+", version)), f"SKILL.md version 不是 x.y.z: {version!r}")
+    description = fm.get("description", "")
+    check(0 < len(description) <= 1024, f"SKILL.md description 应为 1–1024 字符，实际 {len(description)}")
+    version = fm.get("metadata.version", "")
+    check(bool(re.fullmatch(r"\d+\.\d+\.\d+", version)), f"SKILL.md metadata.version 不是 x.y.z: {version!r}")
 
     # 3. 版本一致
+    manifest: dict = {}
     try:
         manifest = json.loads(_read(root / "manifest.json"))
         check(manifest.get("version") == version,
@@ -149,6 +167,9 @@ def validate(root: pathlib.Path = ROOT) -> dict:
         newest = CHANGELOG_HEADING_RE.match(headings[0]) if headings else None
         check(bool(newest) and newest.group(1) == version,
               f"CHANGELOG 最新条目应为 [{version}]")
+        if newest:
+            check(manifest.get("updated_at") == newest.group(2),
+                  f"manifest.json updated_at {manifest.get('updated_at')!r} 应等于 CHANGELOG 最新日期 {newest.group(2)}")
 
     metadata_path = root / ".github/repository-metadata.yml"
     if metadata_path.is_file():

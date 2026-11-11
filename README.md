@@ -39,7 +39,7 @@
 | 贡献阶段 | 覆盖功能与操作 | 带来价值与质量门禁 |
 |---|---|---|
 | 🔍 **Phase 1: 侦察与规则对齐** | 深度分析目标仓库的 CONTRIBUTING、Rulesets 分支保护、Merge Queue 与 AI 贡献政策 | 告别盲目提交，精准对齐社区维护习惯 |
-| 🎯 **Phase 2: 选题与认领意向** | 智能检索 `good first issue`，提供中英文礼貌认领文案，防范公开泄露漏洞 | 避免重复劳动，建立良好的第一印象 |
+| 🎯 **Phase 2: 选题与认领意向** | 智能检索 `good first issue`，提供礼貌的英文认领文案，防范公开泄露漏洞 | 避免重复劳动，建立良好的第一印象 |
 | 🍴 **Phase 3: Fork 与分支隔离** | 配置 `upstream` 远程仓库、创建独立特性分支、**Rebase 冲突消解四步法** | 保持主干干净，轻松解决代码冲突 |
 | 💻 **Phase 4: 编码与 DCO 签名** | Conventional Commits 规范、**DCO (`-s`) 签署与批量补签**、`gpg.format ssh` 签名 | 轻松通过自动化开源许可与签名门禁 |
 | 📝 **Phase 5: 反 AI Slop PR 提交** | **反 AI Slop 三大自证（原理自证/测试自证/最小改动）**、PR 模板与前后对比证据 | 证据完整、维护者容易审的 PR |
@@ -52,27 +52,30 @@
 ```
 [输入: 用户指示想要参与开源 / 挑选 Issue / 提交 PR / 解决冲突 / 回复 Review]
                                        │
-     [Phase 1: 仓库侦察与规则对齐] ────> 读 references/mcp-tools.md 与 security-guide.md
+     [Phase 1: 仓库侦察与规则对齐] ────> 读 references/mcp-tools.md（侦察命令见 SKILL.md）
                                        │
-     [Phase 2: 选题与留言认领] ────────> 读 references/first-timer-tips.md 与 communication-etiquette.md
+     [Phase 2: 选题与留言认领] ────────> 读 references/first-timer-tips.md 与 communication-etiquette.md（安全漏洞走 security-guide.md）
                                        │
      [Phase 3: Fork 与分支隔离] ───────> 读 references/git-fork-and-conflict-guide.md (Upstream + Rebase)
                                        │
      [Phase 4: 编码自测与 DCO 签名] ───> 读 references/commit-conventions.md 与 dco-cla-and-signing.md
                                        │
-     [Phase 5: 高质量 PR 证据闭环] ────> 读 references/ai-slop-guide.md (反 AI Slop 三大自证准则)
+     [Phase 5: 高质量 PR 证据闭环] ────> 读 references/ai-slop-guide.md 与 security-guide.md，跑 validate_contribution.py
                                        │
-     [Phase 6: 跟踪、CI 诊断与合并] ───> 读 references/ci-troubleshooting.md 与 git-errors.md
+     [Phase 6: 跟踪、CI 诊断与合并] ───> 读 references/ci-troubleshooting.md、git-errors.md 与 communication-etiquette.md
 ```
 
 ---
 
-## 🆕 最新版本：v2.2.0（2026-11-08）
+## 🆕 最新版本：v2.2.1（2026-11-12）
 
-- **入口更轻**：`SKILL.md` 改为“阶段路由表”，每个阶段只读对应的一两份手册，侦察命令直接内联。
-- **预检更准**：`validate_contribution.py` 只检查本分支相对上游新增的提交和内容，不再扫描整个上游仓库；DCO 逐个提交检查并核对邮箱，凭据规则补全 `gho_/ghu_/ghs_/ghr_` 等格式。
-- **校验合一**：`scripts/validate.py` 取代原来三个重叠脚本，CI 只依赖 Python 标准库。
-- **事实核对**：对照 2026-11-08 的官方文档修正多处错误，例如 Fine-grained PAT 不能在非成员的公开仓库开 PR、Kubernetes 用 CLA 而非 DCO、各项目 AI 政策并不统一。
+修正版，修的是“检查没查对”的问题：
+- **预检基线修正**：`validate_contribution.py` 默认先用 `upstream/*` 作基线。之前先取 `origin/HEAD`，Fork 落后于上游时会把上游的提交当成你新增的，误报 DCO 缺失和凭据。
+- **不再静默漏查**：`--base` 指定的分支不存在时直接报错（退出码 2），不会退回只查一个提交后报 PASS；`++` 开头的新增行不再被跳过；命中项给出 `文件:行号`。
+- **符合 Agent Skills 规范**：`SKILL.md` 的版本号移到 `metadata.version`（顶层 `version` 会被 `skills-ref validate` 拒绝），技能包自检同步改为检查规范字段。
+- **一份凭据规则**：技能包自检与预检脚本共用同一份凭据规则；CI 增加 Python 3.10。
+
+v2.2.0（2026-11-08）的阶段路由表、预检只查新增内容、校验合一与事实核对等改动见 CHANGELOG。
 
 完整变更见 [CHANGELOG.md](CHANGELOG.md)，下载见 [Releases](https://github.com/hyt315/github-oss-contribute/releases/latest)。
 
