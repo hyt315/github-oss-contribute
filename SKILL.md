@@ -1,7 +1,9 @@
 ---
 name: github-oss-contribute
-version: 2.2.0
 description: Use when the user wants to contribute to someone else's open-source GitHub project - choosing an Issue, reading the project's contribution rules and AI policy, forking and branching, syncing with upstream and resolving rebase conflicts, Conventional Commits, DCO sign-off, CLA, signed commits, pre-PR self-checks, writing the PR, fixing failing CI and answering review feedback. Fork, push, comment and PR creation are approval-gated. Triggers include 开源贡献、第一次贡献、提 PR、找个 issue 做、PR 被拒了怎么办、CI 红了、review 意见、DCO 失败、rebase 冲突、first contribution、contribute.
+license: MIT
+metadata:
+  version: "2.2.1"
 ---
 
 # 开源贡献导航
@@ -56,7 +58,9 @@ gh issue list -R $R --label "good first issue" --state open --limit 30 --json nu
 python <本技能目录>/scripts/validate_contribution.py . --base upstream/main
 ```
 
-它只检查本分支相对上游新增的内容：是否在特性分支、每个提交有无 Signed-off-by 且邮箱与作者一致、提交标题格式、新增行里有无凭据或个人绝对路径。凭据命中即 FAIL；其余是提示，按目标仓库要求取舍。
+它只检查本分支相对上游新增的内容：是否在特性分支、每个提交有无 Signed-off-by 且邮箱与作者一致、提交标题格式、新增行里有无凭据或个人绝对路径。不加 `--base` 时优先用 `upstream/*` 作基线（Fork 的 `origin/main` 常落后于上游，会把上游提交误算进来）；`--base` 指定的分支不存在时直接报错（退出码 2），不会退回只查一个提交。
+
+结果：新增行里的凭据或个人绝对路径为 FAIL（会给出 `文件:行号`）；其余是提示，按目标仓库要求取舍。
 
 ## 事实卡格式
 

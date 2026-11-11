@@ -1,6 +1,24 @@
 # Changelog
 
-本项目采用 [Conventional Commits](https://www.conventionalcommits.org/) 格式记录变更。
+格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)；提交信息使用 [Conventional Commits](https://www.conventionalcommits.org/)。
+
+## [2.2.1] - 2026-11-12
+
+### Fixed
+- `validate_contribution.py` 默认基线顺序改为 `upstream/*` 优先于 `origin/*`。原顺序先取 `origin/HEAD`：在常见的 Fork 工作流（`origin` 是自己的 Fork、`upstream` 已 fetch、特性分支基于 `upstream/main`）里，Fork 的 main 落后于上游时，上游新提交会被算成“本分支新增”，误报 DCO 缺失，并把上游文件里的内容当成你新增的凭据报 FAIL。
+- `validate_contribution.py --base <ref>` 指定的基线不存在时改为报错（退出码 2）。原来会静默退回“只查 HEAD 一个提交”并可能报 PASS。
+- `validate_contribution.py` 新增行扫描改为按 hunk 解析：hunk 内以 `++` 开头的新增行（diff 中显示为 `+++ ...`）原来被当成文件头跳过，其中的凭据会漏报；非 ASCII 文件名不再被 git 转义；命中项给出 `文件:行号`。
+- `SKILL.md` frontmatter 改为符合 Agent Skills 规范：顶层 `version` 不是规范字段（`skills-ref validate` 会报 Unexpected fields），移到 `metadata.version`，并补 `license: MIT`。`scripts/validate.py` 相应改为读取 `metadata.version`，并对规范外的顶层字段报错。
+- `scripts/validate.py` 的凭据规则改为直接复用 `validate_contribution.py` 的同一份规则。原来两份各自维护，已出现漂移（技能包自检不识别 `gho_/ghu_/ghs_/ghr_`、`sk-`、Slack token）。
+- `scripts/validate.py` 新增检查：`manifest.json` 的 `updated_at` 必须等于 CHANGELOG 最新条目日期（2.2.0 时两者一致，但此前没有检查）。
+- `tests/test_validate.py` 的 README 版本用例不再写死 `v2.2.0`，改为读取当前版本，避免每次发版都要改测试。
+- SKILL.md 预检说明与代码一致：个人绝对路径与凭据一样判 FAIL（原文写“凭据命中即 FAIL；其余是提示”）。
+- README 中英文：六阶段架构图改为与 `SKILL.md` 路由表一致（阶段 1 不读 security-guide；阶段 5 加 security-guide；阶段 6 加 communication-etiquette）；中文版“中英文礼貌认领文案”改为“英文认领文案”（模板只有英文）。
+- CHANGELOG：1.0.0 / 1.0.1 / 1.0.2 的日期按对应 tag 提交日期更正（原均写 2026-07-18，实为 2026-06-22 / 2026-06-22 / 2026-07-17）；1.2.1 补记新增的 Reference Files 阅读时机表（该表在 2.2.0 已随 SKILL.md 改版删除）；开头格式说明改为 Keep a Changelog。
+
+### Changed
+- CI 增加 Python 3.10 任务（README 与脚本声明支持 3.10+，此前 CI 只跑 3.12）；原 `validate` 任务名不变。
+- 新增测试：Fork 落后时基线选择、`--base` 不存在、`++` 开头的新增行、非 ASCII 文件名与行号、frontmatter 规范外字段、`updated_at` 漂移、共用凭据规则。
 
 ## [2.2.0] - 2026-11-08
 
@@ -63,6 +81,10 @@
 
 ## [1.2.1] - 2026-08-22
 
+### Added
+
+- SKILL.md 新增 Reference Files 阅读时机表。
+
 ### Changed
 
 - Reference Files 表措辞修正（破折号空格），无功能变化。
@@ -105,14 +127,14 @@
 - Removed the fake security email and standardized private vulnerability reporting.
 - Prohibited credential discovery, chat-based secret collection and unapproved external writes.
 
-## [1.0.2] - 2026-07-18
+## [1.0.2] - 2026-07-17
 
 - Corrected source download links to the main branch.
 
-## [1.0.1] - 2026-07-18
+## [1.0.1] - 2026-06-22
 
 - Replaced non-functional HTML anchors with Markdown headings.
 
-## [1.0.0] - 2026-07-18
+## [1.0.0] - 2026-06-22
 
 - Initial public release.

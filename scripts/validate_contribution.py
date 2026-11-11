@@ -17,8 +17,8 @@ git log / git diff 等查询命令，不改任何文件、配置或远端。零�
   python /path/to/github-oss-contribute/scripts/validate_contribution.py [repo_dir]
       [--base upstream/main] [--quick] [--json]
 
-  --base   指定上游基线（默认按 upstream/HEAD、origin/HEAD、upstream/main、
-           upstream/master、origin/main、origin/master 依次查找）
+  --base   指定上游基线（默认按 upstream/HEAD、upstream/main、upstream/master、
+           origin/HEAD、origin/main、origin/master 依次查找；指定的基线不存在时退出码 2）
   --quick  只查分支与提交信息，跳过新增内容扫描
   --json   机读输出
 退出码：0 = PASS，1 = FAIL，2 = 不是 git 仓库或参数错误
@@ -33,11 +33,13 @@ import subprocess
 import sys
 from pathlib import Path
 
+# upstream 全部排在 origin 前面：Fork 工作流里 origin/HEAD 指向自己 Fork 的 main，
+# 往往落后于上游；用它当基线会把上游新提交算成“本分支新增”，误报 DCO 和凭据。
 BASE_CANDIDATES = (
     "upstream/HEAD",
-    "origin/HEAD",
     "upstream/main",
     "upstream/master",
+    "origin/HEAD",
     "origin/main",
     "origin/master",
 )
@@ -59,11 +61,13 @@ PERSONAL_PATH_PATTERNS = (
 )
 CONVENTIONAL_RE = re.compile(r"^[a-z]+(\([^()\r\n]+\))?!?: \S")
 SIGNOFF_RE = re.compile(r"^Signed-off-by:\s*.+<([^>]+)>\s*$", re.M | re.I)
+HUNK_RE = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@")
 BINARY_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".pdf", ".zip", ".gz", ".mp4"}
 
 
 def git(repo: Path, *args: str) -> tuple[int, str]:
-    proc = subprocess.run(["git", *args], cwd=repo, capture_output=True, text=True,
+    # core.quotePath=false：非 ASCII 文件名按原样输出，不被转义成 "\346\226\207..."
+    proc = subprocess.run(["git", "-c", "core.quotePath=false", *args], cwd=repo, capture_output=True, text=True,
                           encoding="utf-8", errors="replace", check=False)
     return proc.returncode, proc.stdout
 
@@ -74,6 +78,42 @@ def find_base(repo: Path, explicit: str | None) -> str | None:
         if code == 0:
             return ref
     return None
+
+
+def scan_added_lines(diff: str) -> list[tuple[str, int, str]]:
+    """逐个 hunk 扫描新增行，返回 (文件, 行号, 规则名)。
+
+    只把 `diff --git` 与第一个 `@@` 之间的 `+++ ` 当作文件头；hunk 内以 `++` 开头的
+    新增内容（显示为 `+++ ...`）按普通新增行扫描，不会被误认成文件头而漏查。
+    """
+    hits: list[tuple[str, int, str]] = []
+    current, in_header, lineno = "", False, 0
+    for line in diff.splitlines():
+        if line.startswith("diff --git "):
+            current, in_header = "", True
+            continue
+        if in_header:
+            if line.startswith("+++ "):
+                target = line[4:].strip('"')
+                current = target[2:] if target.startswith("b/") else target
+                continue
+            if line.startswith("@@"):
+                in_header = False
+            else:
+                continue
+        if line.startswith("@@"):
+            match = HUNK_RE.match(line)
+            lineno = int(match.group(1)) if match else 0
+            continue
+        if not line.startswith("+"):
+            continue
+        if Path(current).suffix.lower() not in BINARY_SUFFIXES:
+            for pattern, label in SECRET_PATTERNS + PERSONAL_PATH_PATTERNS:
+                if pattern.search(line):
+                    hits.append((current, lineno, label))
+                    break
+        lineno += 1
+    return hits
 
 
 def check(repo: Path, base_ref: str | None = None, quick: bool = False) -> dict:
@@ -98,6 +138,11 @@ def check(repo: Path, base_ref: str | None = None, quick: bool = False) -> dict:
 
     # 2. 基线
     base = find_base(repo, base_ref)
+    if base_ref and not base:
+        # 显式指定的基线不存在时不能静默退回“只查 HEAD”，否则会在漏查的情况下报 PASS
+        return {"status": "ERROR", "target": str(repo), "branch": branch, "base": None,
+                "errors": [f"[基线] 找不到 --base 指定的 {base_ref}：先 git fetch，或检查分支名"],
+                "warnings": warnings, "passed": passed}
     if not base:
         warnings.append("[基线] 找不到上游基线：先 git remote add upstream <上游地址> && git fetch upstream，"
                         "或用 --base 指定；以下只检查 HEAD 一个提交")
@@ -132,19 +177,8 @@ def check(repo: Path, base_ref: str | None = None, quick: bool = False) -> dict:
     # 5. 新增内容扫描
     if not quick and diff_range:
         _, diff = git(repo, "diff", "--no-color", "--unified=0", "--no-ext-diff", *diff_range)
-        current = ""
-        hits = 0
-        for line in diff.splitlines():
-            if line.startswith("+++ "):
-                current = line[6:] if line.startswith("+++ b/") else line[4:]
-                continue
-            if not line.startswith("+") or Path(current).suffix.lower() in BINARY_SUFFIXES:
-                continue
-            for pattern, label in SECRET_PATTERNS + PERSONAL_PATH_PATTERNS:
-                if pattern.search(line):
-                    hits += 1
-                    errors.append(f"[新增内容] {current}: {label}")
-                    break
+        hits = scan_added_lines(diff)
+        errors.extend(f"[新增内容] {path}:{lineno}: {label}" for path, lineno, label in hits)
         if not hits:
             passed.append("[新增内容] 未发现凭据或个人路径")
 

@@ -52,27 +52,30 @@ Want to contribute to open-source projects, but stopped by these real-world barr
 ```
 [Input: User wants to contribute to open source / pick an issue / submit a PR / resolve Git conflicts / respond to reviews]
                                               │
-         [Phase 1: Recon & Repository Policies] ───> Read references/mcp-tools.md & security-guide.md
+         [Phase 1: Recon & Repository Policies] ───> Read references/mcp-tools.md (recon commands are in SKILL.md)
                                               │
-         [Phase 2: Issue Selection & Claiming] ────> Read references/first-timer-tips.md & communication-etiquette.md
+         [Phase 2: Issue Selection & Claiming] ────> Read references/first-timer-tips.md & communication-etiquette.md (vulnerabilities: security-guide.md)
                                               │
          [Phase 3: Fork & Branch Isolation] ───────> Read references/git-fork-and-conflict-guide.md (Upstream + Rebase)
                                               │
          [Phase 4: Development & DCO Signing] ─────> Read references/commit-conventions.md & dco-cla-and-signing.md
                                               │
-         [Phase 5: High-Quality PR & Proof] ───────> Read references/ai-slop-guide.md (Anti-AI Slop 3-Point Proof)
+         [Phase 5: High-Quality PR & Proof] ───────> Read references/ai-slop-guide.md & security-guide.md, run validate_contribution.py
                                               │
-         [Phase 6: CI Diagnosis, Review & Merge] ──> Read references/ci-troubleshooting.md & git-errors.md
+         [Phase 6: CI Diagnosis, Review & Merge] ──> Read references/ci-troubleshooting.md, git-errors.md & communication-etiquette.md
 ```
 
 ---
 
-## 🆕 Latest release: v2.2.0 (2026-11-08)
+## 🆕 Latest release: v2.2.1 (2026-11-12)
 
-- **Lighter entry point**: `SKILL.md` is now a phase router, so each phase reads only the one or two guides it needs; reconnaissance commands are inline.
-- **Sharper pre-PR check**: `validate_contribution.py` checks only the commits and lines your branch adds on top of upstream instead of scanning the whole upstream repo; DCO is checked per commit with email matching, and token patterns now cover `gho_/ghu_/ghs_/ghr_` and more.
-- **One validator**: `scripts/validate.py` replaces three overlapping scripts; CI needs only the Python standard library.
-- **Fact-checked**: several statements corrected against official docs as of 2026-11-08, e.g. fine-grained PATs cannot open PRs on public repos you are not a member of, Kubernetes uses a CLA rather than DCO, and AI policies differ widely between projects.
+A patch release that fixes checks which were not checking the right thing:
+- **Correct default base**: `validate_contribution.py` now prefers `upstream/*` as the base. It used to pick `origin/HEAD` first, so when your fork lagged behind upstream, upstream's commits were counted as yours and triggered false DCO and credential findings.
+- **No silent gaps**: a `--base` that does not exist is now an error (exit code 2) instead of quietly checking only one commit and passing; added lines starting with `++` are no longer skipped; findings show `file:line`.
+- **Agent Skills spec compliant**: the version in `SKILL.md` moved to `metadata.version` (a top-level `version` is rejected by `skills-ref validate`), and the package self-check now enforces spec fields.
+- **One set of credential rules** shared by the package self-check and the pre-PR check; CI also runs on Python 3.10.
+
+The v2.2.0 changes (2026-11-08: phase router, added-content-only pre-PR check, single validator, fact-check) are in the CHANGELOG.
 
 Full notes in [CHANGELOG.md](CHANGELOG.md); downloads on [Releases](https://github.com/hyt315/github-oss-contribute/releases/latest).
 
