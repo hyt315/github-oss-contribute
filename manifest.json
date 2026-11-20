@@ -1,10 +1,8 @@
 {
   "name": "github-oss-contribute",
-  "version": "2.2.1",
-  "owner": "personal",
-  "updated_at": "2026-11-12",
-  "review_cadence": "per-release",
-  "status": "active",
-  "maturity_tier": "production",
-  "lifecycle_stage": "production"
+  "version": "2.3.0",
+  "owner": "hyt315",
+  "updated_at": "2026-11-20",
+  "license": "MIT",
+  "description": "Lightweight open-source contributor guide: repo rules recon, Fork/Rebase conflict resolution, DCO/CLA/SSH signing, 2026 AI disclosure, pre-PR secret/path checks, and CI diagnosis."
 }

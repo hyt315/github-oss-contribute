@@ -1,17 +1,13 @@
-# 🚀 GitHub OSS Contribute / Contributor Navigator
+# 🚀 GitHub OSS Contribute
 
 <div align="center">
 
-**Interactive end-to-end guide for open-source contributors — from finding issues to getting PRs merged, featuring Git conflict resolution, DCO signing, anti-AI slop quality gates, and CI diagnosis.**
-
-**面向全球开发者的开源贡献全程智能导航：从选 Issue 到 PR 成功合并，涵盖 Fork 同步、Rebase 冲突消解、DCO 签名、反 AI Slop 质量自检与 CI 诊断。**
+**Lightweight end-to-end guide for open-source contributors: repo rule recon, Fork/Rebase conflict resolution, DCO/CLA/SSH signing, 2026 AI disclosure, pre-PR local checks, and CI diagnosis.**
 
 [![Validate](https://github.com/hyt315/github-oss-contribute/actions/workflows/validate.yml/badge.svg)](https://github.com/hyt315/github-oss-contribute/actions/workflows/validate.yml)
 [![Release](https://img.shields.io/github/v/release/hyt315/github-oss-contribute?sort=semver)](https://github.com/hyt315/github-oss-contribute/releases/latest)
 [![Agent Skills](https://img.shields.io/badge/Agent%20Skills-compatible-1f6feb)](SKILL.md)
-[![Dependencies](https://img.shields.io/badge/Dependencies-Zero%20(Pure%20Python)-brightgreen)](SKILL.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![GitHub Stars](https://img.shields.io/github/stars/hyt315/github-oss-contribute?style=social)](https://github.com/hyt315/github-oss-contribute/stargazers)
 
 [English](./README.en.md) | [中文](./README.md)
 
@@ -19,245 +15,82 @@
 
 ![GitHub OSS Contribute workflow: recon, select issue, prepare fork, develop with DCO, submit PR, and track to merge](assets/social-preview.png)
 
----
+## What is it?
 
-## 📖 What is this?
+Contributing to an open-source project often stalls on missed repo rules (DCO/CLA, Rulesets, AI policies), messy fork conflicts, or accidentally leaking secrets and local paths in a diff.
 
-Want to contribute to open-source projects, but stopped by these real-world barriers?
-- Finding a project but not knowing how to select a beginner-friendly `good first issue`, or receiving no response after asking to be assigned;
-- Developing directly on your local `main` branch, resulting in messy merge conflicts when upstream gets updated;
-- Having your PR blocked by a project's DCO check because you forgot `git commit -s`;
-- Using AI assistants to code, but being rejected by maintainers because the submission lacked comprehension proof, testing, or was perceived as "AI Slop";
-- Getting confused by cryptic GitHub Actions CI errors, or not knowing how to politely address nitpicky code reviews.
+`github-oss-contribute` pairs 4 focused manuals with a zero-dependency pre-PR validator (`scripts/validate_contribution.py`):
+- **Target-repo rules first**: Inspects `CONTRIBUTING.md`, `AGENTS.md`, branch Rulesets, and AI policy before coding.
+- **Diff-scoped pre-PR check**: Scans only commits and added lines introduced on your branch (branch isolation, DCO author-email match, secret & personal-path checks calibrated against placeholders).
+- **Approval-gated writes & human authorship**: Fork, push, comment, and PR creation require explicit approval; AI help is disclosed transparently (`Signed-off-by` remains human-only).
 
-**`github-oss-contribute`** is an **AI-powered open-source contributor navigator**. Taking a contributor-first perspective, it guides you through 6 full phases: **Reconnaissance → Issue Selection & Claiming → Fork & Feature Branch Setup → Development & DCO Signing → High-Quality PR Submission → CI Diagnosis & Review Collaboration** and asks for your approval before every external write (fork, push, comment, PR).
+## Quick Start
 
----
+### Option A: Send one sentence to your AI agent (easiest)
 
-## ✨ Key Features
+> Please install the `github-oss-contribute` skill from `https://github.com/hyt315/github-oss-contribute` into your skills directory and confirm it is ready.
 
-| Phase | Capabilities & Actions | Value & Guardrails |
-|---|---|---|
-| 🔍 **Phase 1: Recon & Policies** | Analyzes target repository CONTRIBUTING, Rulesets branch protection, Merge Queue, and AI policies | Aligns with community culture before writing code |
-| 🎯 **Phase 2: Issue Selection & Claim** | Filters `good first issue`, drafts polite claim comments, prevents public vulnerability leaks | Avoids duplicated effort and makes a great first impression |
-| 🍴 **Phase 3: Fork & Branch Isolation** | Configures `upstream` remote, isolates feature branches, **4-step Rebase conflict resolution** | Keeps branches clean and resolves Git conflicts smoothly |
-| 💻 **Phase 4: Code & DCO Signing** | Conventional Commits, **DCO (`-s`) signing and retroactive batch sign-offs**, `gpg.format ssh` keys | Passes automated license and commit signature checks |
-| 📝 **Phase 5: Anti-AI Slop PRs** | **Anti-AI Slop 3-Point Proof (Comprehension / Testing / Minimal Scope)**, PR template completion | Evidence-backed PRs that are easy to review |
-| 🚦 **Phase 6: CI Diagnosis & Reviews** | 4-step Actions log triage, Flaky test detection, polite review responses, gentle ping strategies | Accompanies you until the PR is merged |
+Then ask your agent to help pick an issue, sync your fork, resolve a rebase conflict, fix a DCO check, or diagnose a failing CI run.
 
----
-
-## 📊 6-Phase Complete Contributor Journey Architecture
-
-```
-[Input: User wants to contribute to open source / pick an issue / submit a PR / resolve Git conflicts / respond to reviews]
-                                              │
-         [Phase 1: Recon & Repository Policies] ───> Read references/mcp-tools.md (recon commands are in SKILL.md)
-                                              │
-         [Phase 2: Issue Selection & Claiming] ────> Read references/first-timer-tips.md & communication-etiquette.md (vulnerabilities: security-guide.md)
-                                              │
-         [Phase 3: Fork & Branch Isolation] ───────> Read references/git-fork-and-conflict-guide.md (Upstream + Rebase)
-                                              │
-         [Phase 4: Development & DCO Signing] ─────> Read references/commit-conventions.md & dco-cla-and-signing.md
-                                              │
-         [Phase 5: High-Quality PR & Proof] ───────> Read references/ai-slop-guide.md & security-guide.md, run validate_contribution.py
-                                              │
-         [Phase 6: CI Diagnosis, Review & Merge] ──> Read references/ci-troubleshooting.md, git-errors.md & communication-etiquette.md
-```
-
----
-
-## 🆕 Latest release: v2.2.1 (2026-11-12)
-
-A patch release that fixes checks which were not checking the right thing:
-- **Correct default base**: `validate_contribution.py` now prefers `upstream/*` as the base. It used to pick `origin/HEAD` first, so when your fork lagged behind upstream, upstream's commits were counted as yours and triggered false DCO and credential findings.
-- **No silent gaps**: a `--base` that does not exist is now an error (exit code 2) instead of quietly checking only one commit and passing; added lines starting with `++` are no longer skipped; findings show `file:line`.
-- **Agent Skills spec compliant**: the version in `SKILL.md` moved to `metadata.version` (a top-level `version` is rejected by `skills-ref validate`), and the package self-check now enforces spec fields.
-- **One set of credential rules** shared by the package self-check and the pre-PR check; CI also runs on Python 3.10.
-
-The v2.2.0 changes (2026-11-08: phase router, added-content-only pre-PR check, single validator, fact-check) are in the CHANGELOG.
-
-Full notes in [CHANGELOG.md](CHANGELOG.md); downloads on [Releases](https://github.com/hyt315/github-oss-contribute/releases/latest).
-
----
-
-## 🛡️ AI-Assisted Contribution Self-Check
-
-Using AI is not the problem; handing maintainers a change nobody understands or verified is. Ask three questions before every PR (AI policies differ widely between projects, so read the target repo's policy first):
-
-```
-                    ┌────────────────────────────────────────────────────────┐
-                    │  Three pre-PR questions (understand · verify · scope)  │
-                    └───────────────────────────┬────────────────────────────┘
-                                                │
-         ┌──────────────────────────────────────┼──────────────────────────────────────┐
-         ▼                                      ▼                                      ▼
-【1. Comprehension Proof】             【2. Testing Proof】                   【3. Minimal Scope】
- • Explain every line of your design   • Run unit tests locally in terminal   • Refuse unrelated formatting/renames
- • Answer maintainer questions clearly • Provide before/after test evidence   • Keep PR diff minimal and focused
-```
-
----
-
-## 📚 Examples
-
-Three illustrative conversations (repositories and issues are fictional) in [examples/README.md](examples/README.md):
-1. [First contribution](examples/README.md#示例一第一次贡献)
-2. [Diagnosing a CI failure](examples/README.md#示例二ci-失败诊断)
-3. [Handling review feedback](examples/README.md#示例三处理-review-反馈)
-
----
-
-## 🚀 Quick Start
-
-This is an AI Agent Skill — install it to your AI assistant to use it immediately.
-
-### Option A: Paste one sentence into any Agent (recommended, universal)
-
-Send this to your AI assistant and it will clone to the right skills directory:
-
-> Please install the github-oss-contribute skill: clone `https://github.com/hyt315/github-oss-contribute` into your skills directory (e.g. `~/.claude/skills/github-oss-contribute`, `~/.agents/skills/github-oss-contribute`, or `~/.cursor/skills/github-oss-contribute`) and confirm it works. When I want to contribute to open source, pick an issue, submit a PR, resolve Git conflicts, configure DCO signing, or address reviews, guide me through the SKILL.md workflow.
-
-### Option B: GitHub CLI 2.90+ (`gh skill` is in preview)
+### Option B: Install via `npx skills` (90+ agents)
 
 ```bash
-gh skill install hyt315/github-oss-contribute github-oss-contribute --agent claude-code --scope user
+# Project-level install
+npx skills add hyt315/github-oss-contribute
+
+# Global install (recommended)
+npx skills add hyt315/github-oss-contribute -g
 ```
 
-### Option C: Manual per-platform install
-
-| Platform | User-level Path | Project-level Path |
-|---|---|---|
-| **Claude Code** | `git clone https://github.com/hyt315/github-oss-contribute.git ~/.claude/skills/github-oss-contribute` | `.claude/skills/github-oss-contribute` |
-| **Codex** | `git clone https://github.com/hyt315/github-oss-contribute.git ~/.agents/skills/github-oss-contribute` | `.agents/skills/github-oss-contribute` |
-| **Cursor** | `git clone https://github.com/hyt315/github-oss-contribute.git ~/.cursor/skills/github-oss-contribute` | `.cursor/skills/github-oss-contribute` |
-| **General Agents** | `git clone https://github.com/hyt315/github-oss-contribute.git ~/.agents/skills/github-oss-contribute` | `.agents/skills/github-oss-contribute` |
-
-### Option D: Local self-check (Python 3.10+, no dependencies)
+### Option C: Manual clone
 
 ```bash
-# Package self-check: structure, version consistency, links, credentials
-python scripts/validate.py
+# Claude Code
+git clone https://github.com/hyt315/github-oss-contribute.git ~/.claude/skills/github-oss-contribute
 
-# Positive and negative tests for both scripts
-python -m unittest discover tests
+# Cursor
+git clone https://github.com/hyt315/github-oss-contribute.git ~/.cursor/skills/github-oss-contribute
+
+# Codex / generic Agents directory
+git clone https://github.com/hyt315/github-oss-contribute.git ~/.agents/skills/github-oss-contribute
 ```
 
----
+### Run pre-PR check & self-tests
 
-## 🔒 Permissions & Safety Principles
+```bash
+# Run inside your contribution repo (scans only newly added commits & lines)
+python3 /path/to/github-oss-contribute/scripts/validate_contribution.py . --base upstream/main
 
-- **Read-only by default**: reconnaissance, reading code, local development and tests need no approval;
-- **Approve each write**: fork, push, comment, PR creation and force-push are each confirmed separately;
-- **Hands off credentials**: never asks for tokens in chat or searches for local credentials; never changes global Git config without permission;
-- **Pre-push check**: `validate_contribution.py` flags likely credentials and personal paths in added lines; security vulnerabilities always go through private reporting.
-
----
-
-## 📥 Download
-
-| Method | Command / Link |
-|---|---|
-| **HTTPS** | `git clone https://github.com/hyt315/github-oss-contribute.git` |
-| **SSH** | `git clone git@github.com:hyt315/github-oss-contribute.git` |
-| **GitHub CLI** | `gh repo clone hyt315/github-oss-contribute` |
-| **ZIP** | [Download ZIP](https://github.com/hyt315/github-oss-contribute/archive/refs/heads/main.zip) |
-| **Tarball** | [Download Tar](https://github.com/hyt315/github-oss-contribute/archive/refs/heads/main.tar.gz) |
-| **Single file (SKILL.md)** | `curl -O https://raw.githubusercontent.com/hyt315/github-oss-contribute/main/SKILL.md` |
-
----
-
-## 📖 In-Depth Technical References
-
-| Reference Guide | Core Focus | When to Read | Estimated Time |
-|---|---|---|---|
-| 🚨 [**Common Pitfalls (`github-oss-contribute-pitfalls.md`)**](references/github-oss-contribute-pitfalls.md) | 9 common traps: fork main, merge syncing, DCO/CLA, `Fixes #` not closing, fork CI, leaked credentials | Whenever something goes wrong | 4 mins |
-| 🍴 [**Fork & Conflict Resolution (`git-fork-and-conflict-guide.md`)**](references/git-fork-and-conflict-guide.md) | Upstream config, branch isolation, and 4-step Rebase conflict resolution | When setting up branches or resolving Git conflicts | 4 mins |
-| ✍️ [**DCO, CLA & Signing Guide (`dco-cla-and-signing.md`)**](references/dco-cla-and-signing.md) | DCO `-s` sign-offs, batch retroactive signing, and SSH Commit keys | When committing code or blocked by DCO checks | 4 mins |
-| 🛡️ [**Anti-AI Slop Quality Guide (`ai-slop-guide.md`)**](references/ai-slop-guide.md) | Pre-PR questions, evidence gate and per-project AI policies | When drafting PRs and performing pre-commit checks | 4 mins |
-| 🚦 [**CI Troubleshooting Guide (`ci-troubleshooting.md`)**](references/ci-troubleshooting.md) | Actions log triage, local reproduction, and Flaky test handling | When GitHub Actions checks fail on your PR | 4 mins |
-| 💬 [**Communication & Etiquette (`communication-etiquette.md`)**](references/communication-etiquette.md) | Issue claiming, review replies, and gentle ping templates | When communicating with maintainers | 3 mins |
-| 📋 [**Commit Conventions (`commit-conventions.md`)**](references/commit-conventions.md) | Conventional Commits types and version impact | When writing commit messages | 3 mins |
-| 💡 [**First-Timer Tips (`first-timer-tips.md`)**](references/first-timer-tips.md) | Finding `good first issue` and assessing project activity | When looking for projects to contribute to | 3 mins |
-| 🔧 [**Git Errors Cheat Sheet (`git-errors.md`)**](references/git-errors.md) | Quick troubleshooting table for common Git errors | When encountering local Git errors | 3 mins |
-| 🔑 [**MCP Tools & API Mapping (`mcp-tools.md`)**](references/mcp-tools.md) | Platform MCP tools and public REST API fallbacks | When invoking platform capabilities | 3 mins |
-| 🔒 [**Security Guide (`security-guide.md`)**](references/security-guide.md) | Secret scanning and emergency leak response | During pre-commit security audits | 3 mins |
-
----
-
-## 📁 File Structure
-
+# Skill self-check and unit tests
+python3 scripts/validate.py
+python3 -m unittest discover tests -v
 ```
+
+## Repository Structure
+
+```text
 github-oss-contribute/
-├── SKILL.md                          # Entry point: rules, phase router, recon commands, fact card
-├── README.md                         # Chinese documentation
-├── README.en.md                      # English documentation
-├── CHANGELOG.md                      # Version history
-├── LICENSE                           # MIT License
-├── .gitignore                        # Git ignore rules
-├── CONTRIBUTING.md                   # Contribution guide
-├── CODE_OF_CONDUCT.md                # Code of conduct
-├── SECURITY.md                       # Security policy
-├── CONTRIBUTORS.md                   # Contributors list
-├── manifest.json                     # Skill manifest
-├── agents/                           # Multi-agent metadata
-├── assets/                           # Media assets and social previews
-├── examples/                         # Three example conversations
+├── SKILL.md                             # Core rules, 4-way phase routing, recon commands & fact card
 ├── scripts/
-│   ├── validate_contribution.py      # Pre-PR check (run inside your contribution repo)
-│   └── validate.py                   # Package self-check (single entry point)
+│   ├── validate_contribution.py         # Pre-PR branch validator (diff-scoped)
+│   └── validate.py                      # Skill package validator (shared secret rules)
 ├── tests/
-│   ├── test_validate.py              # Positive & negative tests for validate.py
-│   └── test_validate_contribution.py # Tests for the pre-PR check (temporary git repos)
-└── references/                       # 11 guides
-    ├── github-oss-contribute-pitfalls.md # Common pitfalls
-    ├── git-fork-and-conflict-guide.md # Upstream config & Rebase conflict resolution
-    ├── dco-cla-and-signing.md        # DCO sign-offs & SSH Commit signing
-    ├── ai-slop-guide.md              # Pre-PR self-check & per-project AI policies
-    ├── ci-troubleshooting.md         # CI failure triage & Flaky test handling
-    ├── communication-etiquette.md    # Issue claims, review replies & gentle pings
-    ├── commit-conventions.md         # Conventional Commits standards
-    ├── first-timer-tips.md           # Finding good first issues
-    ├── git-errors.md                 # Common Git errors cheat sheet
-    ├── mcp-tools.md                  # MCP tools mapping & API fallbacks
-    └── security-guide.md             # Secret scanning & security checks
+│   ├── test_validate_contribution.py    # Pre-PR validator tests
+│   └── test_validate.py                 # Package validator tests
+├── references/
+│   ├── git-and-fork.md                  # Fork/upstream, Rebase conflicts, Git errors & CI diagnosis
+│   ├── commits-dco-and-signing.md       # Conventional Commits, DCO/CLA, SSH signing & AI disclosure
+│   ├── ai-policy-and-pr-quality.md      # Issue selection, anti-AI slop gate, security & etiquette
+│   └── pitfalls-and-access.md           # High-frequency pitfalls & GitHub auth/MCP boundaries
+└── .github/workflows/validate.yml       # Python 3.10 / 3.12 matrix CI
 ```
 
----
+## Open Source Lifecycle Suite
 
-## 🌐 GitHub Open Source Lifecycle Suite
+- **[`github-oss-prep`](https://github.com/hyt315/github-oss-prep)**: Pre-launch prep — deterministic secret/hygiene audit, must-have vs optional polish, modern install conventions, and gated publishing.
+- **[`github-oss-ops`](https://github.com/hyt315/github-oss-ops)**: Post-launch operations — triage, AI slop & prompt-injection defense, PR review, PVR/GHSA security SOP, and releases.
+- **[`github-oss-contribute`](https://github.com/hyt315/github-oss-contribute)**: Contributor guide — fork sync, rebase conflict handling, DCO signing, AI disclosure, and pre-PR checks.
 
-Related skills for open-source maintainers and contributors:
+## License
 
-| Stage / Role | Recommended Skill | Core Mission & Capabilities | GitHub Repository |
-|---|---|---|---|
-| 📦 **Pre-Launch Prep** | [**`github-oss-prep`**](https://github.com/hyt315/github-oss-prep) | Automated repository scaffolding, bilingual READMEs, CI workflows, and compliance checks | [hyt315/github-oss-prep](https://github.com/hyt315/github-oss-prep) |
-| ⚙️ **Post-Launch Ops** | [**`github-oss-ops`**](https://github.com/hyt315/github-oss-ops) | Issue triage, AI hallucination defense, PR review, GHSA vulnerability SOP, and multi-channel broadcasting | [hyt315/github-oss-ops](https://github.com/hyt315/github-oss-ops) |
-| 🚀 **Contributor Navigator** | [**`github-oss-contribute`**](https://github.com/hyt315/github-oss-contribute) | End-to-end contributor guide: Fork syncing, Rebase conflict resolution, DCO signing, and anti-AI slop gates | [hyt315/github-oss-contribute](https://github.com/hyt315/github-oss-contribute) |
-
----
-
-## ❓ FAQ
-
-- **Q: Why must I configure upstream instead of developing directly on local main?**  
-  A: If you code on local `main`, your branch history diverges when the upstream repo updates. Developing on feature branches like `feat/xxx` keeps your `main` clean and makes Rebase conflict resolution straightforward.
-- **Q: Why was my PR blocked by DCO? How do I fix it?**  
-  A: Projects that use the DCO (e.g. Node.js and many CNCF projects) require `Signed-off-by` on every commit. Run `git commit --amend -s --no-edit` for the latest commit, or `git rebase --signoff upstream/main` for several, then `git push --force-with-lease` to update the PR.
-- **Q: Will maintainers reject my PR if I used AI to help write code?**  
-  A: It depends on the project. QEMU, Zig, Gentoo and NetBSD essentially ban it; the Linux kernel, curl and Homebrew allow it with conditions (usually disclosure, and only humans may sign the DCO). Read the target repo's AI policy, then check: can you explain it, did you verify it, is it minimal?
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md). If this skill helped you, please give it a [Star ⭐](https://github.com/hyt315/github-oss-contribute/stargazers)!
-
----
-
-## 📄 License
-
-Licensed under the [MIT License](LICENSE).
-
----
-
-> 🌏 **中文版: [README.md](./README.md)**
+[MIT](LICENSE). See [CHANGELOG.md](CHANGELOG.md) for version history.

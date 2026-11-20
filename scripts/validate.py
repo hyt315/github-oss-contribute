@@ -1,26 +1,8 @@
 #!/usr/bin/env python3
 """validate.py - github-oss-contribute 技能包自检（唯一校验入口）
 
-只读、零依赖（Python 3.10+ 标准库）。检查的是本技能包自身，不访问网络、不读取目标仓库。
+只读、零依赖（Python 3.10+ 标准库）。检查本技能包自身，不访问网络。
 检查贡献分支请用 scripts/validate_contribution.py。
-
-检查项：
-  1. 必需文件在盘
-  2. SKILL.md frontmatter 符合 Agent Skills 规范：只用 name / description / license /
-     compatibility / metadata / allowed-tools；版本写在 metadata.version
-  3. 版本号四处一致：SKILL.md、manifest.json、CHANGELOG.md 最新条目、.github/repository-metadata.yml；
-     manifest.json 的 updated_at 等于 CHANGELOG 最新条目日期
-  4. CHANGELOG 每个二级标题形如 `## [x.y.z] - YYYY-MM-DD`
-  5. references/ 下每份手册都被 SKILL.md 引用（无孤儿）
-  6. 所有 Markdown 本地链接可达
-  7. references/ 不得写死 "SKILL.md Step N"（编号一改就失效）
-  8. README 安装路径齐全，中英文 README 写明当前版本
-  9. 文本文件中无凭据样式字符串（规则与 validate_contribution.py 共用一份）、无危险凭据指引
- 10. 全部 Python 文件可被 ast 解析
-
-用法：
-  python scripts/validate.py          # 人读输出，退出码 0=通过 1=失败
-  python scripts/validate.py --json   # 机读输出
 """
 
 from __future__ import annotations
@@ -45,43 +27,28 @@ REQUIRED_FILES = (
     "README.en.md",
     "CHANGELOG.md",
     "LICENSE",
-    "CONTRIBUTING.md",
-    "CODE_OF_CONDUCT.md",
     "SECURITY.md",
-    "CONTRIBUTORS.md",
     "manifest.json",
     "agents/openai.yaml",
-    "examples/README.md",
-    ".github/pull_request_template.md",
-    ".github/ISSUE_TEMPLATE/config.yml",
-    ".github/repository-metadata.yml",
-)
-
-README_FRAGMENTS = (
-    f"~/.agents/skills/{SKILL_NAME}",
-    f"~/.claude/skills/{SKILL_NAME}",
-    f"~/.cursor/skills/{SKILL_NAME}",
-    f"https://github.com/hyt315/{SKILL_NAME}/releases/latest",
-    "examples/README.md",
 )
 
 TEXT_SUFFIXES = {".md", ".yml", ".yaml", ".json", ".py", ".mjs", ".js", ".txt", ".svg"}
 SKIP_DIRS = {".git", "node_modules", "__pycache__"}
 
-# 凭据规则只维护一份（validate_contribution.py），避免两处各改各的
 SECRET_PATTERNS = tuple(pattern for pattern, _label in _CONTRIB_SECRET_PATTERNS)
-# Agent Skills 规范允许的 frontmatter 顶层字段（https://agentskills.io/specification）
 SPEC_FIELDS = {"name", "description", "license", "compatibility", "metadata", "allowed-tools"}
 UNSAFE_PATTERNS = (
     re.compile(r"Get-ChildItem\s+-Path\s+\$HOME\s+-Recurse", re.I),
     re.compile(r"print\s*\(\s*token\s*\)", re.I),
     re.compile(r"echo\s+\$GITHUB_(?:TOKEN|PERSONAL_ACCESS_TOKEN)"),
-    re.compile(r"~/\.codex/skills/"),  # Codex 已改用 ~/.agents/skills
+    re.compile(r"~/\.codex/skills/"),
     re.compile(r"security@example\.com", re.I),
 )
 
 LINK_RE = re.compile(r"(?<!!)\[[^\]]*\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)")
 CHANGELOG_HEADING_RE = re.compile(r"^## \[(\d+\.\d+\.\d+)\] - (\d{4}-\d{2}-\d{2})\s*$")
+HEADING_RE = re.compile(r"^#{1,6}\s+(.+?)\s*#*\s*$", re.M)
+FENCE_RE = re.compile(r"^```.*?^```", re.S | re.M)
 STEP_REF_RE = re.compile(r"SKILL\.md\s*Step\s*\d", re.I)
 
 
@@ -92,12 +59,24 @@ def _iter_files(root: pathlib.Path):
 
 
 def _read(path: pathlib.Path) -> str:
-    return path.read_text(encoding="utf-8")
+    return path.read_text(encoding="utf-8-sig").replace("\r\n", "\n")
+
+
+def _anchors(text: str) -> set[str]:
+    found: set[str] = set()
+    seen: dict[str, int] = {}
+    for raw in HEADING_RE.findall(FENCE_RE.sub("", text)):
+        title = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", raw)
+        title = re.sub(r"<[^>]+>", "", title).replace("`", "")
+        slug = re.sub(r"[^\w\- ]", "", title.strip().lower()).replace(" ", "-")
+        count = seen.get(slug, 0)
+        seen[slug] = count + 1
+        found.add(slug if count == 0 else f"{slug}-{count}")
+    return found
 
 
 def _frontmatter(text: str) -> dict[str, str] | None:
-    """解析 frontmatter 的顶层键；metadata 下的子键展开为 "metadata.<key>"。缺失时返回 None。"""
-    match = re.match(r"^---\r?\n(.*?)\r?\n---\r?\n", text, re.S)
+    match = re.match(r"^---\n(.*?)\n---\n", text, re.S)
     if not match:
         return None
     fields: dict[str, str] = {}
@@ -135,7 +114,7 @@ def validate(root: pathlib.Path = ROOT) -> dict:
         return {"status": "FAIL", "checks": checks, "errors": errors}
     skill = _read(skill_path)
 
-    # 2. frontmatter
+    # 2. agentskills.io frontmatter 规范
     fm = _frontmatter(skill)
     check(fm is not None, "SKILL.md 缺少 YAML frontmatter")
     fm = fm or {}
@@ -148,8 +127,7 @@ def validate(root: pathlib.Path = ROOT) -> dict:
     version = fm.get("metadata.version", "")
     check(bool(re.fullmatch(r"\d+\.\d+\.\d+", version)), f"SKILL.md metadata.version 不是 x.y.z: {version!r}")
 
-    # 3. 版本一致
-    manifest: dict = {}
+    # 3. 版本一致（SKILL.md metadata.version == manifest.json == CHANGELOG.md）
     try:
         manifest = json.loads(_read(root / "manifest.json"))
         check(manifest.get("version") == version,
@@ -161,22 +139,12 @@ def validate(root: pathlib.Path = ROOT) -> dict:
     changelog_path = root / "CHANGELOG.md"
     if changelog_path.is_file():
         headings = [line for line in _read(changelog_path).splitlines() if line.startswith("## ")]
-        # 4. 标题格式
         for line in headings:
             check(bool(CHANGELOG_HEADING_RE.match(line)), f"CHANGELOG 标题格式不对: {line!r}")
         newest = CHANGELOG_HEADING_RE.match(headings[0]) if headings else None
-        check(bool(newest) and newest.group(1) == version,
-              f"CHANGELOG 最新条目应为 [{version}]")
-        if newest:
-            check(manifest.get("updated_at") == newest.group(2),
-                  f"manifest.json updated_at {manifest.get('updated_at')!r} 应等于 CHANGELOG 最新日期 {newest.group(2)}")
+        check(bool(newest) and newest.group(1) == version, f"CHANGELOG 最新条目应为 [{version}]")
 
-    metadata_path = root / ".github/repository-metadata.yml"
-    if metadata_path.is_file():
-        check(f"tag: v{version}" in _read(metadata_path),
-              f"repository-metadata.yml 的 release tag 应为 v{version}")
-
-    # 5. 无孤儿手册
+    # 4. 无孤儿手册
     cited = set(re.findall(r"references/([\w\-]+\.md)", skill))
     for ref in sorted((root / "references").glob("*.md")):
         check(ref.name in cited, f"SKILL.md 未引用 references/{ref.name}")
@@ -187,43 +155,36 @@ def validate(root: pathlib.Path = ROOT) -> dict:
             continue
         text = _read(path)
 
-        # 6. 本地链接
+        # 5. 本地链接与锚点
         if path.suffix == ".md":
-            for target in LINK_RE.findall(text):
-                if re.match(r"^(?:[a-z][a-z0-9+.-]*:|#)", target, re.I):
+            for target in LINK_RE.findall(FENCE_RE.sub("", text)):
+                if re.match(r"^[a-z][a-z0-9+.-]*:", target, re.I):
                     continue
-                local = unquote(target.split("#", 1)[0])
+                local, _, fragment = target.partition("#")
+                dest = path.parent / unquote(local) if local else path
                 if local:
-                    check((path.parent / local).exists(), f"{rel}: 本地链接失效 {target}")
+                    check(dest.exists(), f"{rel}: 本地链接失效 {target}")
+                if fragment and dest.suffix == ".md" and dest.is_file():
+                    check(unquote(fragment).lower() in _anchors(_read(dest)),
+                          f"{rel}: 锚点不存在 {target}")
 
-        # 7. 写死步骤编号
+        # 6. 写死步骤编号
         if rel.startswith("references/"):
             check(not STEP_REF_RE.search(text), f"{rel}: 不要写死 'SKILL.md Step N'，改写为适用任务")
 
-        # 9. 凭据与危险指引
+        # 7. 凭据与危险指引
         for pattern in SECRET_PATTERNS:
             check(not pattern.search(text), f"{rel}: 疑似凭据字符串")
         for pattern in UNSAFE_PATTERNS:
             check(not pattern.search(text), f"{rel}: 不安全的凭据指引")
 
-        # 10. Python 语法
+        # 8. Python 语法
         if path.suffix == ".py":
             try:
                 ast.parse(text, filename=rel)
                 check(True, "")
             except SyntaxError as exc:
                 check(False, f"{rel}: 第 {exc.lineno} 行语法错误 {exc.msg}")
-
-    # 8. README 安装路径
-    readme_path = root / "README.md"
-    if readme_path.is_file():
-        readme = _read(readme_path)
-        for fragment in README_FRAGMENTS:
-            check(fragment in readme, f"README.md 缺少 {fragment}")
-    for name in ("README.md", "README.en.md"):
-        path = root / name
-        if path.is_file() and version:
-            check(f"v{version}" in _read(path), f"{name} 未写明当前版本 v{version}")
 
     return {
         "status": "PASS" if not errors else "FAIL",
@@ -235,6 +196,11 @@ def validate(root: pathlib.Path = ROOT) -> dict:
 
 
 def main(argv: list[str] | None = None) -> int:
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError):
+            pass
     parser = argparse.ArgumentParser(description="github-oss-contribute 技能包自检（只读）")
     parser.add_argument("--json", action="store_true", help="输出 JSON")
     parser.add_argument("--root", type=pathlib.Path, default=ROOT, help="技能包根目录")

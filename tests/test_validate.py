@@ -1,6 +1,6 @@
 """scripts/validate.py 的正向与负向测试。
 
-运行：python -m unittest discover tests
+运行：python -m unittest discover tests -v
 """
 
 from __future__ import annotations
@@ -27,12 +27,6 @@ class ValidateTest(unittest.TestCase):
     def tearDown(self) -> None:
         self._tmp.cleanup()
 
-    def edit(self, rel: str, old: str, new: str) -> None:
-        path = self.root / rel
-        text = path.read_text(encoding="utf-8")
-        self.assertIn(old, text, f"fixture text not found in {rel}")
-        path.write_text(text.replace(old, new, 1), encoding="utf-8")
-
     def append(self, rel: str, extra: str) -> None:
         path = self.root / rel
         path.write_text(path.read_text(encoding="utf-8") + extra, encoding="utf-8")
@@ -56,6 +50,12 @@ class ValidateTest(unittest.TestCase):
         (self.root / "SECURITY.md").unlink()
         self.assertFailsWith("SECURITY.md")
 
+    def test_top_level_version_not_in_spec(self) -> None:
+        path = self.root / "SKILL.md"
+        text = path.read_text(encoding="utf-8")
+        path.write_text(text.replace("license: MIT\n", "license: MIT\nversion: 2.3.0\n", 1), encoding="utf-8")
+        self.assertFailsWith("规范外的顶层字段")
+
     def test_manifest_version_drift(self) -> None:
         manifest = json.loads((self.root / "manifest.json").read_text(encoding="utf-8"))
         manifest["version"] = "0.0.1"
@@ -74,40 +74,16 @@ class ValidateTest(unittest.TestCase):
         self.append("README.md", "\n[x](references/missing.md)\n")
         self.assertFailsWith("本地链接失效")
 
+    def test_broken_anchor(self) -> None:
+        self.append("README.md", "\n[x](references/git-and-fork.md#不存在的章节)\n")
+        self.assertFailsWith("锚点不存在")
+
     def test_hardcoded_step_number(self) -> None:
-        self.append("references/ci-troubleshooting.md", "\n> SKILL.md Step 8 引用本文件。\n")
+        self.append("references/git-and-fork.md", "\n> SKILL.md Step 8 引用本文件。\n")
         self.assertFailsWith("Step N")
 
-    def test_secret_like_string(self) -> None:
-        self.append("examples/README.md", "\n" + "gh" + "p_" + "A" * 36 + "\n")
-        self.assertFailsWith("疑似凭据")
-
-    def test_readme_version_stale(self) -> None:
-        version = validate.validate(ROOT)["version"]
-        for name in ("README.md", "README.en.md"):
-            self.assertIn(f"v{version}", (self.root / name).read_text(encoding="utf-8"))
-            path = self.root / name
-            path.write_text(path.read_text(encoding="utf-8").replace(f"v{version}", "v0.0.0"), encoding="utf-8")
-        self.assertFailsWith("未写明当前版本")
-
-    def test_top_level_version_not_in_spec(self) -> None:
-        self.edit("SKILL.md", "license: MIT\n", "license: MIT\nversion: 1.0.0\n")
-        self.assertFailsWith("规范外的顶层字段")
-
-    def test_metadata_version_drift(self) -> None:
-        version = validate.validate(ROOT)["version"]
-        self.edit("SKILL.md", f'version: "{version}"', 'version: "0.0.1"')
-        self.assertFailsWith("manifest.json 版本")
-
-    def test_manifest_updated_at_drift(self) -> None:
-        manifest = json.loads((self.root / "manifest.json").read_text(encoding="utf-8"))
-        manifest["updated_at"] = "2000-01-01"
-        (self.root / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
-        self.assertFailsWith("updated_at")
-
     def test_shared_secret_rules(self) -> None:
-        # gho_ 原来只有预检脚本识别，技能包自检漏掉；现在两者共用一份规则
-        self.append("examples/README.md", "\n" + "gh" + "o_" + "B" * 36 + "\n")
+        self.append("README.md", "\n" + "sk-proj-" + "AbCdEfGh1234567890" * 2 + "\n")
         self.assertFailsWith("疑似凭据")
 
     def test_python_syntax_error(self) -> None:

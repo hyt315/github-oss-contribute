@@ -1,6 +1,6 @@
 """scripts/validate_contribution.py 的测试：在临时 git 仓库里构造好/坏贡献分支。
 
-运行：python -m unittest discover tests
+运行：python -m unittest discover tests -v
 """
 
 from __future__ import annotations
@@ -16,8 +16,6 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 import validate_contribution as vc  # noqa: E402
 
-AUTHOR = "Dev <dev@example.org>"
-
 
 class ContributionTest(unittest.TestCase):
     def setUp(self) -> None:
@@ -26,7 +24,6 @@ class ContributionTest(unittest.TestCase):
         self.git("init", "-q", "-b", "main")
         self.git("config", "user.name", "Dev")
         self.git("config", "user.email", "dev@example.org")
-        # 上游已有的文件里含个人路径：不应误报，因为不是本分支新增
         (self.repo / "legacy.txt").write_text("/" + "home/alice/old\n", encoding="utf-8")
         self.git("add", ".")
         self.git("commit", "-q", "-m", "chore: init")
@@ -85,7 +82,6 @@ class ContributionTest(unittest.TestCase):
             self.assertEqual(vc.main([empty]), 2)
 
     def test_upstream_preferred_over_stale_fork_origin(self) -> None:
-        # origin/HEAD 指向落后的 Fork main，上游已有新提交（未签署、含凭据样式内容）
         self.git("update-ref", "refs/remotes/origin/main", "refs/remotes/upstream/main")
         self.git("symbolic-ref", "refs/remotes/origin/HEAD", "refs/remotes/origin/main")
         self.git("switch", "-q", "main")
@@ -106,7 +102,7 @@ class ContributionTest(unittest.TestCase):
         self.assertEqual(vc.main([str(self.repo), "--base", "upstream/nope"]), 2)
 
     def test_added_line_starting_with_plus_plus_is_scanned(self) -> None:
-        self.commit("文档/说明.md".replace("/", "_"), "ok\n++ " + "gh" + "p_" + "D" * 36 + "\n", "docs: add")
+        self.commit("文档_说明.md", "ok\n++ " + "gh" + "p_" + "D" * 36 + "\n", "docs: add")
         report = vc.check(self.repo)
         self.assertEqual(report["status"], "FAIL", report)
         self.assertTrue(any("文档_说明.md:2:" in e for e in report["errors"]), report["errors"])
@@ -114,6 +110,30 @@ class ContributionTest(unittest.TestCase):
     def test_word_boundary_no_false_positive(self) -> None:
         self.commit("doc.md", "disk-encryption-configuration-settings-guide\n", "docs: add guide")
         self.assertEqual(vc.check(self.repo)["status"], "PASS")
+
+    def test_placeholder_paths_do_not_false_positive(self) -> None:
+        sample = (
+            "Example: /home/user/proj/ and /Users/you/code/ and /home/runner/work/\n"
+            "Windows: C:\\Users\\<user>\\app\\ and C:\\Users\\YourName\\proj\\ and C:\\Users\\Public\\x\\\n"
+        )
+        self.commit("examples.md", sample, "docs: add example paths")
+        report = vc.check(self.repo)
+        self.assertEqual(report["status"], "PASS", report["errors"])
+
+    def test_real_path_and_new_secret_patterns_fail(self) -> None:
+        self.commit(
+            "leak.txt",
+            "-----BEGIN " + "PRIVATE KEY-----\n" + "/home/" + "zhangwei/secret/\n",
+            "feat: add leak",
+        )
+        report = vc.check(self.repo)
+        self.assertEqual(report["status"], "FAIL")
+        self.assertEqual(len(report["errors"]), 2, report["errors"])
+
+    def test_lockfile_is_skipped(self) -> None:
+        self.commit("package-lock.json", '{"resolved": "/home/zhangwei/local/"}\n', "chore: update lockfile")
+        report = vc.check(self.repo)
+        self.assertEqual(report["status"], "PASS", report["errors"])
 
 
 if __name__ == "__main__":

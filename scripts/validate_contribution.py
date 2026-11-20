@@ -6,21 +6,12 @@ git log / git diff 等查询命令，不改任何文件、配置或远端。零�
 
 只检查「本分支相对上游基线新增的内容」，不扫描整个上游仓库，避免误报：
   1. 分支：不在 main/master、不在 detached HEAD
-  2. 基线：能找到上游基线（upstream/HEAD、origin/HEAD、upstream/main ……）
-  3. DCO：基线之后每个提交都有 Signed-off-by，且其中一行邮箱与作者邮箱一致
-  4. 提交标题：符合 Conventional Commits 1.0.0 格式（仅提示，很多项目不要求）
-  5. 新增行（+ 行）中无凭据样式字符串、无个人绝对路径
+  2. 基线：能找到上游基线（upstream/* 优先于 origin/*）
+  3. DCO：基线之后每个提交都有 Signed-off-by，且邮箱与作者邮箱一致
+  4. 提交标题：符合 Conventional Commits 1.0.0 格式（仅提示）
+  5. 新增行（+ 行）中无凭据样式字符串、无真实个人绝对路径（忽略占位符与系统目录、跳过 lockfile）
 
 结果：凭据 / 个人路径 = error（FAIL）；其余 = warning（不阻断，请对照目标仓库的 CONTRIBUTING）。
-
-用法：
-  python /path/to/github-oss-contribute/scripts/validate_contribution.py [repo_dir]
-      [--base upstream/main] [--quick] [--json]
-
-  --base   指定上游基线（默认按 upstream/HEAD、upstream/main、upstream/master、
-           origin/HEAD、origin/main、origin/master 依次查找；指定的基线不存在时退出码 2）
-  --quick  只查分支与提交信息，跳过新增内容扫描
-  --json   机读输出
 退出码：0 = PASS，1 = FAIL，2 = 不是 git 仓库或参数错误
 """
 
@@ -33,8 +24,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-# upstream 全部排在 origin 前面：Fork 工作流里 origin/HEAD 指向自己 Fork 的 main，
-# 往往落后于上游；用它当基线会把上游新提交算成“本分支新增”，误报 DCO 和凭据。
 BASE_CANDIDATES = (
     "upstream/HEAD",
     "upstream/main",
@@ -48,27 +37,59 @@ BASE_CANDIDATES = (
 SECRET_PATTERNS = (
     (re.compile(r"\b" + "gh" + r"[pousr]_[A-Za-z0-9]{36,}"), "GitHub token（ghp_/gho_/ghu_/ghs_/ghr_）"),
     (re.compile(r"\b" + "github" + r"_pat_[A-Za-z0-9_]{22,}"), "GitHub fine-grained PAT"),
-    (re.compile(r"\b" + "sk-" + r"ant-[A-Za-z0-9_-]{20,}"), "Anthropic API key"),
-    (re.compile(r"\b" + "sk-" + r"(?:proj-)?[A-Za-z0-9_-]{20,}"), "OpenAI 风格 API key"),
-    (re.compile(r"\b" + "AK" + r"IA[0-9A-Z]{16}"), "AWS access key ID"),
+    (re.compile(r"(?<![A-Za-z0-9_-])" + "sk-" + r"ant-[A-Za-z0-9_-]{20,}"), "Anthropic API key"),
+    (re.compile(r"(?<![A-Za-z0-9_-])" + "sk-" + r"(?:proj-)?[A-Za-z0-9_-]{20,}"), "OpenAI 风格 API key"),
+    (re.compile(r"\b(?:" + "AK" + r"IA|" + "AS" + r"IA)[0-9A-Z]{16}"), "AWS access key ID"),
+    (re.compile(r"\b" + "AI" + r"za[0-9A-Za-z_-]{35}"), "Google API key"),
+    (re.compile(r"\b" + "hf" + r"_[A-Za-z0-9]{30,}"), "Hugging Face token"),
+    (re.compile(r"\b" + "npm" + r"_[A-Za-z0-9]{36,}"), "npm access token"),
+    (re.compile("pypi-" + r"AgEIcHlwaS5vcmc[A-Za-z0-9_-]{40,}"), "PyPI API token"),
     (re.compile(r"\b" + "xox" + r"[baprs]-[A-Za-z0-9-]{10,}"), "Slack token"),
-    (re.compile("-----BEGIN " + r"(?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----"), "私钥"),
+    (re.compile("-----BEGIN " + r"(?:[A-Z0-9]+ )?PRIVATE KEY-----"), "私钥（含 PKCS#8）"),
+    (re.compile(r"https?://(?:[^/\s:@<>{}$]{1,64}:[^/\s:@<>{}$]{1,128}|[A-Za-z0-9_-]{30,})@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"), "URL 内嵌凭据"),
 )
+
+# 忽略常见文档/测试占位用户名（<user>、YourName、%USERNAME%、user、you、runner、ubuntu、Public 等）
 PERSONAL_PATH_PATTERNS = (
-    (re.compile(r"[A-Za-z]:\\" + r"Users\\[^\\\s\"']+\\"), "Windows 个人目录"),
-    (re.compile(r"/" + r"home/[A-Za-z0-9._-]+/"), "Linux 个人目录"),
-    (re.compile(r"/" + r"Users/[A-Za-z0-9._-]+/"), "macOS 个人目录"),
+    (
+        re.compile(
+            r"[A-Za-z]:[\\/]{1,2}Users[\\/]{1,2}"
+            r"(?![<%$\[{]|(?:YourName|yourname|YOURNAME|UserName|username|USERNAME|user|User|USER|Public|Default|All Users|xxx|XXX|用户名|你的用户名|张三)(?![^\s\\/\"'`]))"
+            r"[^\s\\/\"'`]+[\\/]"
+        ),
+        "Windows 个人目录",
+    ),
+    (
+        re.compile(r"/home/(?!(?:user|username|you|yourname|me|name|runner|ubuntu|example|USER|USERNAME)/)[A-Za-z0-9._-]+/"),
+        "Linux 个人目录",
+    ),
+    (
+        re.compile(r"/Users/(?!(?:user|username|you|yourname|me|name|runner|example|USER|USERNAME|Shared)/)[A-Za-z0-9._-]+/"),
+        "macOS 个人目录",
+    ),
 )
+
 CONVENTIONAL_RE = re.compile(r"^[a-z]+(\([^()\r\n]+\))?!?: \S")
 SIGNOFF_RE = re.compile(r"^Signed-off-by:\s*.+<([^>]+)>\s*$", re.M | re.I)
 HUNK_RE = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@")
-BINARY_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".pdf", ".zip", ".gz", ".mp4"}
+BINARY_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".pdf", ".zip", ".gz", ".mp4", ".lock"}
+LOCKFILE_NAMES = {
+    "package-lock.json",
+    "pnpm-lock.yaml",
+    "yarn.lock",
+    "uv.lock",
+    "poetry.lock",
+    "Cargo.lock",
+    "Gemfile.lock",
+    "composer.lock",
+}
 
 
 def git(repo: Path, *args: str) -> tuple[int, str]:
-    # core.quotePath=false：非 ASCII 文件名按原样输出，不被转义成 "\346\226\207..."
-    proc = subprocess.run(["git", "-c", "core.quotePath=false", *args], cwd=repo, capture_output=True, text=True,
-                          encoding="utf-8", errors="replace", check=False)
+    proc = subprocess.run(
+        ["git", "-c", "core.quotePath=false", *args],
+        cwd=repo, capture_output=True, text=True, encoding="utf-8", errors="replace", check=False,
+    )
     return proc.returncode, proc.stdout
 
 
@@ -81,11 +102,7 @@ def find_base(repo: Path, explicit: str | None) -> str | None:
 
 
 def scan_added_lines(diff: str) -> list[tuple[str, int, str]]:
-    """逐个 hunk 扫描新增行，返回 (文件, 行号, 规则名)。
-
-    只把 `diff --git` 与第一个 `@@` 之间的 `+++ ` 当作文件头；hunk 内以 `++` 开头的
-    新增内容（显示为 `+++ ...`）按普通新增行扫描，不会被误认成文件头而漏查。
-    """
+    """逐个 hunk 扫描新增行，返回 (文件, 行号, 规则名)。跳过二进制与常见 lockfile。"""
     hits: list[tuple[str, int, str]] = []
     current, in_header, lineno = "", False, 0
     for line in diff.splitlines():
@@ -107,9 +124,11 @@ def scan_added_lines(diff: str) -> list[tuple[str, int, str]]:
             continue
         if not line.startswith("+"):
             continue
-        if Path(current).suffix.lower() not in BINARY_SUFFIXES:
+        cur_path = Path(current)
+        if cur_path.suffix.lower() not in BINARY_SUFFIXES and cur_path.name not in LOCKFILE_NAMES:
+            added_text = line[1:]
             for pattern, label in SECRET_PATTERNS + PERSONAL_PATH_PATTERNS:
-                if pattern.search(line):
+                if pattern.search(added_text):
                     hits.append((current, lineno, label))
                     break
         lineno += 1
@@ -139,7 +158,6 @@ def check(repo: Path, base_ref: str | None = None, quick: bool = False) -> dict:
     # 2. 基线
     base = find_base(repo, base_ref)
     if base_ref and not base:
-        # 显式指定的基线不存在时不能静默退回“只查 HEAD”，否则会在漏查的情况下报 PASS
         return {"status": "ERROR", "target": str(repo), "branch": branch, "base": None,
                 "errors": [f"[基线] 找不到 --base 指定的 {base_ref}：先 git fetch，或检查分支名"],
                 "warnings": warnings, "passed": passed}
@@ -195,12 +213,17 @@ def check(repo: Path, base_ref: str | None = None, quick: bool = False) -> dict:
 
 
 def main(argv: list[str] | None = None) -> int:
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError):
+            pass
     parser = argparse.ArgumentParser(description="提 PR 前的本地贡献分支预检（只读）")
     parser.add_argument("target", nargs="?", default=".", help="贡献仓库路径（默认当前目录）")
     parser.add_argument("--base", help="上游基线，如 upstream/main")
     parser.add_argument("--quick", action="store_true", help="跳过新增内容扫描")
     parser.add_argument("--json", action="store_true", help="JSON 输出")
-    parser.add_argument("--read-only", action="store_true", help=argparse.SUPPRESS)  # 旧参数，始终只读
+    parser.add_argument("--read-only", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
 
     repo = Path(args.target).resolve()

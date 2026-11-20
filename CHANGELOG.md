@@ -2,138 +2,62 @@
 
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)；提交信息使用 [Conventional Commits](https://www.conventionalcommits.org/)。
 
-## [2.2.1] - 2026-11-12
+## [2.3.0] - 2026-11-20
+
+Major simplification & pre-PR scanner calibration release.
 
 ### Fixed
-- `validate_contribution.py` 默认基线顺序改为 `upstream/*` 优先于 `origin/*`。原顺序先取 `origin/HEAD`：在常见的 Fork 工作流（`origin` 是自己的 Fork、`upstream` 已 fetch、特性分支基于 `upstream/main`）里，Fork 的 main 落后于上游时，上游新提交会被算成“本分支新增”，误报 DCO 缺失，并把上游文件里的内容当成你新增的凭据报 FAIL。
-- `validate_contribution.py --base <ref>` 指定的基线不存在时改为报错（退出码 2）。原来会静默退回“只查 HEAD 一个提交”并可能报 PASS。
-- `validate_contribution.py` 新增行扫描改为按 hunk 解析：hunk 内以 `++` 开头的新增行（diff 中显示为 `+++ ...`）原来被当成文件头跳过，其中的凭据会漏报；非 ASCII 文件名不再被 git 转义；命中项给出 `文件:行号`。
-- `SKILL.md` frontmatter 改为符合 Agent Skills 规范：顶层 `version` 不是规范字段（`skills-ref validate` 会报 Unexpected fields），移到 `metadata.version`，并补 `license: MIT`。`scripts/validate.py` 相应改为读取 `metadata.version`，并对规范外的顶层字段报错。
-- `scripts/validate.py` 的凭据规则改为直接复用 `validate_contribution.py` 的同一份规则。原来两份各自维护，已出现漂移（技能包自检不识别 `gho_/ghu_/ghs_/ghr_`、`sk-`、Slack token）。
-- `scripts/validate.py` 新增检查：`manifest.json` 的 `updated_at` 必须等于 CHANGELOG 最新条目日期（2.2.0 时两者一致，但此前没有检查）。
-- `tests/test_validate.py` 的 README 版本用例不再写死 `v2.2.0`，改为读取当前版本，避免每次发版都要改测试。
-- SKILL.md 预检说明与代码一致：个人绝对路径与凭据一样判 FAIL（原文写“凭据命中即 FAIL；其余是提示”）。
-- README 中英文：六阶段架构图改为与 `SKILL.md` 路由表一致（阶段 1 不读 security-guide；阶段 5 加 security-guide；阶段 6 加 communication-etiquette）；中文版“中英文礼貌认领文案”改为“英文认领文案”（模板只有英文）。
-- CHANGELOG：1.0.0 / 1.0.1 / 1.0.2 的日期按对应 tag 提交日期更正（原均写 2026-07-18，实为 2026-06-22 / 2026-06-22 / 2026-07-17）；1.2.1 补记新增的 Reference Files 阅读时机表（该表在 2.2.0 已随 SKILL.md 改版删除）；开头格式说明改为 Keep a Changelog。
+
+- **Calibrated personal path scanning in `validate_contribution.py`**: Ignored common placeholder usernames (`<user>`, `YourName`, `%USERNAME%`, `user`, `you`, `runner`, `ubuntu`, `Public`, `Shared`) so documentation and test examples no longer trigger false FAILs.
+- **Expanded shared secret patterns**: Added detection for PKCS#8 private-key headers, Google `AIza`, Hugging Face `hf_`, npm `npm_`, PyPI `pypi-`, and URL-embedded credentials; skipped lockfile diffs (`package-lock.json`, `uv.lock`, etc.).
+- **Added Markdown `#anchor` validation** to `scripts/validate.py` (previously skipped).
 
 ### Changed
-- CI 增加 Python 3.10 任务（README 与脚本声明支持 3.10+，此前 CI 只跑 3.12）；原 `validate` 任务名不变。
-- 新增测试：Fork 落后时基线选择、`--base` 不存在、`++` 开头的新增行、非 ASCII 文件名与行号、frontmatter 规范外字段、`updated_at` 漂移、共用凭据规则。
+
+- **Consolidated `references/` (11 fragmented files → 4 focused manuals)**: Merged into `git-and-fork.md`, `commits-dco-and-signing.md`, `ai-policy-and-pr-quality.md`, and `pitfalls-and-access.md`, removing bilingual duplication and fill-in-the-blank etiquette templates.
+- **Updated 2026 AI disclosure guidance**: Clarified `Signed-off-by` (human-only) vs `Assisted-by:` trailer / PR description disclosure, warning against abusing `Co-authored-by` for AI tools.
+- **Decoupled brittle release-ceremony checks** in `scripts/validate.py` and consolidated `.github/workflows/validate.yml` into a single Python `["3.10", "3.12"]` matrix job.
+- **Streamlined bilingual READMEs**: Added `npx skills add hyt315/github-oss-contribute` alongside copy-to-AI installation and aligned the Open Source Lifecycle Suite.
+
+### Removed
+
+- `.github/repository-metadata.yml`, `CONTRIBUTORS.md`, and `examples/README.md` (redundant static files).
+
+## [2.2.1] - 2026-11-12
+
+- Prioritized `upstream/*` over `origin/*` in `validate_contribution.py`, failed fast on missing `--base`, switched to hunk-level diff parsing, moved `version` to `metadata.version`, and unified secret rules between `validate.py` and `validate_contribution.py`.
 
 ## [2.2.0] - 2026-11-08
 
-### Changed
-- `SKILL.md` 改为“阶段路由表”（阶段 → 先读哪份手册 → 产出 → 需批准的写操作），删除与路由表重复的 Reference Files 列表和逐阶段段落；阶段 1 侦察命令内联。
-- `scripts/validate_contribution.py` 重写：只检查本分支相对上游基线（自动识别 `upstream/HEAD`、`origin/HEAD` 等，或 `--base` 指定）新增的提交与新增行，不再扫描整个仓库；DCO 逐个提交检查并核对签署邮箱与作者邮箱；提交标题按 Conventional Commits 提示；凭据规则补全 `gho_/ghu_/ghs_/ghr_`、AWS、Slack 并加词边界防误报；处理 detached HEAD；非 git 目录退出码 2。
-- 精简重复内容：`commit-conventions.md` 的 DCO/签名部分改为链接；`communication-etiquette.md` 两套重复模板合并为一套；`ai-slop-guide.md` 删除失效目录、中文段与英文正文统一口径；避坑库重写为 9 条“症状 → 原因 → 怎么做”，删除与脚本重复的探针代码。
-- CI 改用 Python 3.12 + `actions/checkout@v7.0.1` + `actions/setup-python@v7.1.0`，不再依赖 Node（Node 20 已于 2026-04-30 停止维护）。
-
-### Removed
-- `scripts/selftest.py`、`scripts/validate-skill.mjs`、`tests/test_skill.py`，由 `scripts/validate.py`（唯一校验入口）和 `tests/` 下两组正向/负向测试取代。
-- README 中指向不存在仓库 `skill-doctor` 的链接与命令。
-
-### Fixed（对照 2026-11-08 官方文档核对）
-- Fine-grained PAT 不能在用户非成员的公开仓库评论或开 PR，只能推到自己的 Fork；`gh` 即使只读也需要登录。
-- Kubernetes 使用 CNCF CLA（EasyCLA，`/easycla` 重查），不是 DCO；Google 使用自有 CLA 系统；`@cla-bot check` 说法删除。
-- DCO 检查比对的是提交作者邮箱，而非 GitHub 账号邮箱；多提交补签改用 `git rebase --signoff`（原 `reword` 步骤无效）。
-- Conventional Commits：`perf` 不默认 patch；补充 `!` / `BREAKING CHANGE` → major。
-- SSH 签名需 Git 2.34+；Verified 的例外（rebase/squash 合并、vigilant mode、本地 allowedSignersFile）；GPG 与 SSH 配置互相覆盖的提示。
-- 冲突标记示例与 rebase 时 ours/theirs 互换说明；补充完成后的 rebase 用 reflog 恢复。
-- Git 报错速查：non-fast-forward 来自 origin 而非 upstream；删除重复且相互矛盾的 unrelated histories 条目；`git checkout -- <file>` 改为带不可恢复警告的 `git restore`。
-- 各项目 AI 政策并不统一（QEMU/Zig/Gentoo/NetBSD 禁止，Linux 内核/curl/Homebrew/Ghostty 有条件允许，Debian 中立），删除“数百个项目全面禁止”的说法。
-- `Fixes #` 在非默认分支被忽略、仓库可关闭自动关闭 Issue；Fork PR 等待批准的按钮名；泄露凭据时贡献者无法清除上游 `refs/pull/*`，先吊销。
-- 新增本地 MCP 默认浏览器登录、`--lockdown-mode`、`get_job_logs`、`code_security`/`secret_protection` 工具集名称。
-- Hacktoberfest 2026 起不再统计 PR；“陌生仓库批量改错字”列为垃圾 PR 模式。
-- README：示例锚点失效、“端到端可复核”“高通过率”等无法证实的说法、中英文全局 Git 配置描述不一致、重复分隔线。
-- CHANGELOG 中 1.2.0 条目标题损坏，已修复并补上 1.2.1。
+- Converted `SKILL.md` to a phase routing table, rewrote `validate_contribution.py` to scan only newly added commits/lines, and fact-checked GitHub Docs & AI policies.
 
 ## [2.1.0] - 2026-09-06
 
-### Added
-- **开源贡献核心避坑库与官方规范基线 (`references/github-oss-contribute-pitfalls.md`)**：
-  - 覆盖直接从 Fork 的 `main` 分支提 PR 的“多重毁灭”陷阱与独立特性分支隔离铁律；
-  - 覆盖 `git merge upstream/main` 破坏线性历史机理与推荐的 `git fetch` + `git rebase` + `git rerere` 标准变基工作流；
-  - 覆盖 2025/2026 顶级开源项目严厉的 Anti-AI Slop 政策，规范原理自证、测试自证与最小侵入准则；
-  - 覆盖 DCO `Signed-off-by` 邮箱一致性匹配失败救场与 CLA 签署流程；
-  - 覆盖 GitHub PR 自动关闭 Issue 语法规范（`Fixes #123`）与 Fork PR 的 Actions CI 权限壁垒。
-- **本地贡献分支校验工具 (`scripts/validate_contribution.py`)**：
-  - 支持 `--json` 结构化机读导出、`--quick` 快速采样与 `--read-only` 纯只读模式；
-  - 自动检测当前是否在 main/master 默认分支、最新 commit 是否缺失 DCO 签名、是否存在敏感凭据或个人绝对路径。
-- **开源贡献就绪事实卡 (Fact Card)**：在 `SKILL.md` 中规范标准 Markdown 分层事实卡（分支隔离、隐私安全、提交质量、法律合规、反 AI Slop、关联指引）。
-- **标准 Pytest 测试入口 (`tests/test_skill.py`)**：提供标准测试套件入口，支持 CI 集成。
-
-### Changed
-- **指令工程全面升级 (Inline Action Directives)**：彻底消除 `SKILL.md` 中的“详见/可参考”弱引用，全量升级为 `👉 动作：先读 [文件]` 就近内联动作指令。
-- **只读安全原则与授权提交铁律**：确立前期侦察 100% 纯只读 Zero-Mutation 纪律，Fork、Push 与 PR 创建明确声明须用户显式授权。
-- **自测套件强化 (`scripts/selftest.py`)**：集成 Python 原生 `ast.parse` 静态语法解析门禁、避坑库深度断言、负向拦截夹具与 `validate_contribution.py --json` 联测。
+- Added `validate_contribution.py`, pitfalls guide, and Fact Card format.
 
 ## [2.0.0] - 2026-09-02
 
-### 🌟 Major Upgrade: 全程开源贡献智能导航、Git 冲突消解、DCO 签名与反 AI Slop 质量门禁
-
-- **渐进式调度架构重构**：`SKILL.md` 瘦身为轻量高信号调度中枢（99 行，~2100 tokens），严格按需索引 9 本参考手册；
-- **上游 Fork 同步与 Rebase 冲突消解指南**：新增 `references/git-fork-and-conflict-guide.md`，覆盖 upstream remote 配置、特性分支隔离与 4 步冲突消解法；
-- **DCO 签署、CLA 协议与 SSH Commit 签名实战**：新增 `references/dco-cla-and-signing.md`，提供 `-s` 补签名命令与 GPG/SSH Verified 绿标配置；
-- **CI 失败自诊断与排查四步法**：新增 `references/ci-troubleshooting.md`，覆盖 GitHub Actions 日志分析、本地复现与 Flaky Test 处理；
-- **2026 AI 辅助贡献伦理与反 AI Slop 准则升级**：升级 `references/ai-slop-guide.md`，确立原理自证、测试自证与最小改动范围三大铁律；
-- **全场景沟通模板库扩充**：扩充 `references/communication-etiquette.md`，新增 Issue 认领、Review 探讨与温和催单文案；
-- **门面与文档全面升级**：中英双语 README 达到 PREP 黄金规范标准。
+- Added Fork/Rebase guide, DCO/CLA/SSH signing guide, CI troubleshooting, and anti-AI slop gates.
 
 ## [1.2.1] - 2026-08-22
 
-### Added
-
-- SKILL.md 新增 Reference Files 阅读时机表。
-
-### Changed
-
-- Reference Files 表措辞修正（破折号空格），无功能变化。
+- Added reference reading-time table.
 
 ## [1.2.0] - 2026-08-21
 
-### Added
-
-- Rulesets reconnaissance: `gh api repos/<owner>/<repo>/rulesets` in Phase 1 — push rules apply to the entire fork network; check push rules, required reviews and commit signoff before forking.
-- Verified-commit guidance: SSH signing config (GPG/SSH/S-MIME supported), plus a note on Sigstore keyless (gitsign) for CNCF-style projects.
-- Merge Queue explanation in Phase 6: approved ≠ merged; the PR re-runs required checks in queue (`gh pr merge --auto`).
-- Bot reviewer handling in Phase 6: treat Copilot/Graphite/Codacy feedback as lint, apply suggested changes manually.
-- Security-vulnerability disclosure as a contribution path: never open public issues for vulnerabilities — use SECURITY.md or Private vulnerability reporting (`gh api .../private-vulnerability-reporting`).
-- Hacktoberfest-season risk note when picking issues; expanded Conventional Commits type list (perf/build/ci) with "still 1.0.0" clarification.
-- `scripts/selftest.py`: zero-dep regression (good fixture = this skill passes; negative fixtures = missing phases and orphan references must be detected). Fixes the missing regression entry found by skill-doctor audit.
-
-### Changed
-
-- AI Policy reconnaissance now also checks whether disclosure of AI assistance is required; Phase 4 checklist adds proactive AI-assistance disclosure, anchored by the curl maintainer's 2025 slop data (~20% slop submissions, ~5% valid security reports).
-- Linked the previously orphaned `references/git-errors.md` from Phase 4.4 (caught by the new selftest).
-- README rewritten to the split-file bilingual layout (README.md + README.en.md) with one-liner agent install, trigger phrases, prerequisites, deliverables and Stars badge.
+- Added Rulesets recon, verified commits, Merge Queue, and security disclosure guidance.
 
 ## [1.1.0] - 2026-07-18
 
-### Added
-
-- Three end-to-end contribution examples covering reconnaissance, CI diagnosis and review feedback.
-- Cross-platform static validator and GitHub Actions validation workflow.
-- Agent metadata, repository metadata, contributor attribution and a social-preview asset.
-
-### Changed
-
-- Corrected Codex installation to `~/.agents/skills` and clarified ChatGPT/Codex naming.
-- Made public read-only reconnaissance credential-free and moved GitHub authentication to the first authorized write.
-- Strengthened repository-instruction discovery, AI disclosure, authorship and contribution-ethics rules.
-- Rewrote the landing page around evidence, examples, downloads and a five-minute first run.
-
-### Security
-
-- Removed the fake security email and standardized private vulnerability reporting.
-- Prohibited credential discovery, chat-based secret collection and unapproved external writes.
+- Reworked authentication around read-only recon and approval-gated writes.
 
 ## [1.0.2] - 2026-07-17
 
-- Corrected source download links to the main branch.
+- Corrected source download links to `main`.
 
 ## [1.0.1] - 2026-06-22
 
-- Replaced non-functional HTML anchors with Markdown headings.
+- Replaced HTML anchors with Markdown headings.
 
 ## [1.0.0] - 2026-06-22
 
